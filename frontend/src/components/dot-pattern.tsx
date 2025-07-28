@@ -3,13 +3,19 @@
 export function DotPattern() {
   return (
     <div className="absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(var(--foreground)/0.15)_1px,transparent_0)] [background-size:20px_20px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(var(--foreground)/0.1)_1px,transparent_0)]" />
+      {/* 主要的点状背景 */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(var(--foreground)/0.1)_1px,transparent_0)] [background-size:24px_24px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(var(--foreground)/0.08)_1px,transparent_0)]" />
       
-      <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-2000" />
+      {/* 更细密的点状层 */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0.5px_0.5px,rgb(var(--foreground)/0.05)_0.5px,transparent_0)] [background-size:12px_12px] dark:bg-[radial-gradient(circle_at_0.5px_0.5px,rgb(var(--foreground)/0.03)_0.5px,transparent_0)]" />
       
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-background/50 to-transparent" />
+      {/* 非常微妙的光晕效果 */}
+      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-foreground/2 rounded-full blur-3xl" />
+      
+      {/* 渐变遮罩让边缘更自然 */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-background/80 via-transparent to-background/80" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/20 to-transparent" />
     </div>
   );
 }
