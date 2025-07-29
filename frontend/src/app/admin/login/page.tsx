@@ -42,12 +42,19 @@ export default function LoginPage() {
 
     try {
       const response = await apiClient.login(data);
+      console.log('Login successful:', response);
+      
+      // 保存token
       setToken(response.access_token);
-      router.push('/admin/dashboard');
+      
+      // 等待一小段时间确保token保存完成，然后跳转
+      setTimeout(() => {
+        router.push('/admin/dashboard');
+      }, 100);
+      
     } catch (error) {
       console.error('Login error:', error);
       setError('登录失败，请检查用户名和密码');
-    } finally {
       setIsLoading(false);
     }
   };
