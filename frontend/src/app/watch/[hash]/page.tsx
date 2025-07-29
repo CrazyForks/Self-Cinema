@@ -104,6 +104,7 @@ export default function WatchPage() {
             <div className="relative">
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                 <VideoPlayer 
+                  key={`episode-${currentEpisode}`}
                   src={currentEpisodeData?.videoUrl || "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4"}
                   autoplay={false}
                 />

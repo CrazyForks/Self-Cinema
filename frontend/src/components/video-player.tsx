@@ -24,52 +24,43 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
       return;
     }
 
-    console.log('初始化播放器，视频源:', src);
+    console.log('VideoPlayer useEffect triggered - src:', src);
     setError(null);
     setIsLoading(true);
 
     const initializePlayer = async () => {
       try {
-        // 首先测试视频源是否可访问
-        const testVideo = document.createElement('video');
-        testVideo.crossOrigin = 'anonymous';
-
-        const testPromise = new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('视频源加载超时'));
-          }, 10000);
-
-          testVideo.onloadedmetadata = () => {
-            clearTimeout(timeout);
-            resolve(true);
-          };
-
-          testVideo.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error('视频源无法加载'));
-          };
-
-          testVideo.src = src;
-        });
-
-        await testPromise;
-        console.log('视频源测试通过');
-
-        // 动态导入 Plyr
-        const { default: Plyr } = await import('plyr');
-        console.log('Plyr 导入成功');
+        console.log('开始初始化播放器，视频源:', src);
 
         const video = videoRef.current!;
 
         // 清理之前的实例
         if (playerRef.current) {
-          playerRef.current.destroy();
+          console.log('销毁之前的播放器实例');
+          try {
+            playerRef.current.destroy();
+          } catch (e) {
+            console.warn('销毁播放器时出错:', e);
+          }
           playerRef.current = null;
         }
         if (hlsRef.current) {
-          hlsRef.current.destroy();
+          console.log('销毁之前的HLS实例');
+          try {
+            hlsRef.current.destroy();
+          } catch (e) {
+            console.warn('销毁HLS时出错:', e);
+          }
           hlsRef.current = null;
         }
+
+        // 重置video元素
+        video.src = '';
+        video.load();
+
+        // 动态导入 Plyr
+        const { default: Plyr } = await import('plyr');
+        console.log('Plyr 导入成功');
 
         // 检查是否是 HLS 流
         const isHLS = src.includes('.m3u8');
@@ -128,6 +119,9 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
 
         console.log('开始初始化 Plyr');
 
+        // 等待一小段时间确保video源设置完成
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         // 初始化 Plyr 播放器
         const player = new Plyr(video, {
           controls: [
@@ -177,7 +171,6 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
           disableContextMenu: false,
           // 强制使用内置 SVG 图标
           iconUrl: 'https://npm.onmicrosoft.cn/plyr@3.7.8/dist/plyr.svg',
-
           // 确保图标正确渲染
           blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
         });
@@ -233,6 +226,7 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
 
     // 清理函数
     return () => {
+      console.log('VideoPlayer 组件清理');
       if (playerRef.current) {
         try {
           playerRef.current.destroy();
