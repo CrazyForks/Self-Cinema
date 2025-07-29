@@ -122,22 +122,37 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
         // 等待一小段时间确保video源设置完成
         await new Promise(resolve => setTimeout(resolve, 100));
 
+        // 检测是否为移动端
+        const isMobile = window.innerWidth <= 768;
+        
+        // 根据设备类型配置控制栏
+        const mobileControls = [
+          'play-large',
+          'play',
+          'progress',
+          'current-time',
+          'mute',
+          'fullscreen'
+        ];
+        
+        const desktopControls = [
+          'play-large',
+          'rewind',
+          'play',
+          'fast-forward',
+          'progress',
+          'current-time',
+          'duration',
+          'mute',
+          'volume',
+          'settings',
+          'pip',
+          'fullscreen'
+        ];
+
         // 初始化 Plyr 播放器
         const player = new Plyr(video, {
-          controls: [
-            'play-large',
-            'rewind',
-            'play',
-            'fast-forward',
-            'progress',
-            'current-time',
-            'duration',
-            'mute',
-            'volume',
-            'settings',
-            'pip',
-            'fullscreen'
-          ],
+          controls: isMobile ? mobileControls : desktopControls,
           settings: ['quality', 'speed'],
           speed: {
             selected: 1,
