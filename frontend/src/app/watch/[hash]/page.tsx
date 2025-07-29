@@ -97,7 +97,8 @@ export default function WatchPage() {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+        {/* 桌面端布局：左右分栏 */}
+        <div className="hidden lg:flex gap-6">
           {/* 主要内容区域 */}
           <div className="flex-1 min-w-0 space-y-6">
             {/* 视频播放器区域 */}
@@ -360,54 +361,249 @@ export default function WatchPage() {
           </div>
         </div>
 
-        {/* 底部控制栏 */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/50">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentEpisode <= 1}
-                  onClick={() => handleEpisodeChange(currentEpisode - 1)}
-                  className="gap-2"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  上一集
-                </Button>
-                <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
-                  <Play className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">第 {currentEpisode} 集</span>
+        {/* 移动端布局：上下结构 */}
+        <div className="lg:hidden space-y-6">
+          {/* 移动端视频播放器 */}
+          <div className="relative">
+            <div className="aspect-video bg-black rounded-lg overflow-hidden">
+              <VideoPlayer 
+                key={`episode-${currentEpisode}`}
+                src={currentEpisodeData?.videoUrl || "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4"}
+                autoplay={false}
+              />
+            </div>
+          </div>
+
+          {/* 移动端剧集信息 */}
+          <Card className="border-2 border-border/50">
+            <CardHeader className="pb-4">
+              <div className="space-y-3">
+                <div>
+                  <CardTitle className="text-2xl font-bold mb-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 dark:from-primary dark:via-blue-600 dark:to-purple-600 bg-clip-text text-transparent">
+                    {mockData.series.title}
+                  </CardTitle>
+                  <p className="text-base text-muted-foreground">{mockData.series.englishTitle}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentEpisode >= mockData.series.totalEpisodes}
-                  onClick={() => handleEpisodeChange(currentEpisode + 1)}
-                  className="gap-2"
-                >
-                  下一集
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-3 text-sm flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium">{mockData.series.rating}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {mockData.series.releaseYear}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Play className="h-4 w-4" />
+                    第 {currentEpisode} 集 / 共 {mockData.series.totalEpisodes} 集
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {mockData.series.tags.map((tag, index) => (
+                    <Badge key={tag} variant="outline" className={`
+                      ${index === 0 ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/50 dark:border-red-800 dark:text-red-400' : ''}
+                      ${index === 1 ? 'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-800 dark:text-yellow-400' : ''}
+                      ${index === 2 ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-400' : ''}
+                      ${index === 3 ? 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/50 dark:border-purple-800 dark:text-purple-400' : ''}
+                      ${index === 4 ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-950/50 dark:border-green-800 dark:text-green-400' : ''}
+                    `}>
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="info" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="info">剧集信息</TabsTrigger>
+                  <TabsTrigger value="cast">演员表</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="info" className="mt-6 space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-base">剧情简介</h3>
+                    <p className="text-muted-foreground leading-relaxed text-sm">{mockData.series.description}</p>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">导演：</span>
+                      <span>{mockData.series.director}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">地区：</span>
+                      <span>{mockData.series.region}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">类型：</span>
+                      <span>{mockData.series.genre.join(" / ")}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">播放量：</span>
+                      <span>{mockData.series.views}</span>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="cast" className="mt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    {mockData.series.actors.map((actor, index) => (
+                      <div key={actor} className="text-center">
+                        <Avatar className="w-12 h-12 mx-auto mb-2">
+                          <AvatarImage src={`https://via.placeholder.com/48x48/3b82f6/ffffff?text=${actor.charAt(0)}`} />
+                          <AvatarFallback>{actor.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <p className="font-medium text-xs">{actor}</p>
+                        <p className="text-xs text-muted-foreground">主演</p>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* 移动端选集器 */}
+          <Card className="border-2 border-border/50 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Play className="h-5 w-5 text-primary" />
+                选集播放
+              </CardTitle>
+              <CardDescription className="flex items-center justify-between">
+                <span>共 {mockData.series.totalEpisodes} 集</span>
+                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400">
+                  {mockData.series.status}
+                </Badge>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="px-4 pb-2">
+                <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-2 text-center">
+                  正在播放：第 {currentEpisode} 集
+                </div>
+              </div>
+              {/* 移动端使用网格布局 */}
+              <div className="p-4 pt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  {mockData.episodes.map((episode) => (
+                    <div
+                      key={episode.id}
+                      className={`relative group rounded-lg border-2 transition-all duration-300 ${
+                        currentEpisode === episode.episode 
+                          ? "border-primary bg-primary/5 shadow-lg" 
+                          : "border-transparent hover:border-accent bg-card hover:bg-accent/5"
+                      }`}
+                    >
+                      <Button
+                        variant="ghost"
+                        className="w-full h-auto p-0 rounded-lg overflow-hidden"
+                        onClick={() => handleEpisodeChange(episode.episode)}
+                      >
+                        <div className="w-full p-3">
+                          {/* 剧集号和时长 */}
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                              currentEpisode === episode.episode 
+                                ? "bg-primary text-primary-foreground" 
+                                : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-accent-foreground"
+                            }`}>
+                              {episode.episode}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {episode.isVip && (
+                                <Crown className="h-3 w-3 text-yellow-500" />
+                              )}
+                              <span className="text-xs text-muted-foreground">{episode.duration}</span>
+                            </div>
+                          </div>
+                          
+                          {/* 标题 */}
+                          <h4 className="text-xs font-medium text-left line-clamp-2 mb-1">
+                            {episode.title.replace(`第${episode.episode}集：`, "")}
+                          </h4>
+                          
+                          {/* 状态 */}
+                          <div className="flex items-center justify-center mt-2 pt-2 border-t border-border/30">
+                            {currentEpisode === episode.episode ? (
+                              <>
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></div>
+                                <span className="text-xs text-green-600 dark:text-green-400 font-medium">播放中</span>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">未观看</span>
+                            )}
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm">
-                  <Volume2 className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Maximize className="h-4 w-4" />
-                </Button>
+              {/* 进度信息 */}
+              <div className="p-4 border-t border-border/50 bg-muted/20">
+                <div className="text-xs text-muted-foreground text-center space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>观看进度</span>
+                    <span>{currentEpisode} / {mockData.series.totalEpisodes}</span>
+                  </div>
+                  <Progress value={(currentEpisode / mockData.series.totalEpisodes) * 100} className="h-1" />
+                </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* 底部控制栏 */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentEpisode <= 1}
+                onClick={() => handleEpisodeChange(currentEpisode - 1)}
+                className="gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                上一集
+              </Button>
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-md border border-primary/20">
+                <Play className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">第 {currentEpisode} 集</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentEpisode >= mockData.series.totalEpisodes}
+                onClick={() => handleEpisodeChange(currentEpisode + 1)}
+                className="gap-2"
+              >
+                下一集
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm">
+                <Volume2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Maximize className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
       </div>
       
-      {/* 底部留白避免内容被固定栏遮挡 */}
+      {/* Bottom spacing */}
       <div className="h-20"></div>
     </div>
   );
