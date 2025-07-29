@@ -41,7 +41,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         if (playerRef.current) {
           console.log('销毁之前的播放器实例');
           try {
-            playerRef.current.destroy();
+            (playerRef.current as { destroy(): void }).destroy();
           } catch (e) {
             console.warn('销毁播放器时出错:', e);
           }
@@ -50,7 +50,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         if (hlsRef.current) {
           console.log('销毁之前的HLS实例');
           try {
-            hlsRef.current.destroy();
+            (hlsRef.current as { destroy(): void }).destroy();
           } catch (e) {
             console.warn('销毁HLS时出错:', e);
           }
@@ -88,7 +88,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
                 console.log('HLS manifest loaded');
               });
 
-              hls.on(Hls.Events.ERROR, (_event: unknown, data: { details: string; fatal: boolean; type: string }) => {
+              hls.on(Hls.Events.ERROR, (_event: unknown, data: { details: string; fatal: boolean; type: unknown }) => {
                 console.error('HLS error:', data);
                 setError(`HLS错误: ${data.details}`);
                 if (data.fatal) {
@@ -205,7 +205,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
             const savedProgress = getProgress(episodeId);
             if (savedProgress && savedProgress.currentTime > 10) {
               console.log(`恢复播放进度: ${savedProgress.currentTime}s`);
-              player.currentTime = savedProgress.currentTime;
+              (player as unknown as { currentTime: number }).currentTime = savedProgress.currentTime;
             }
           }
         });
@@ -221,13 +221,14 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
 
         // 播放进度监听
         player.on('timeupdate', () => {
-          if (episodeId && player.duration > 0) {
+          if (episodeId && (player as unknown as { duration: number; currentTime: number }).duration > 0) {
             // 每5秒保存一次进度
             if (progressTimerRef.current) {
               clearTimeout(progressTimerRef.current);
             }
             progressTimerRef.current = setTimeout(() => {
-              saveProgress(episodeId, player.currentTime, player.duration);
+              const playerInstance = player as unknown as { duration: number; currentTime: number };
+              saveProgress(episodeId, playerInstance.currentTime, playerInstance.duration);
             }, 1000);
           }
         });
@@ -235,7 +236,8 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         // 播放结束时标记为已完成
         player.on('ended', () => {
           if (episodeId) {
-            saveProgress(episodeId, player.duration, player.duration);
+            const playerInstance = player as unknown as { duration: number };
+            saveProgress(episodeId, playerInstance.duration, playerInstance.duration);
           }
         });
 
@@ -283,7 +285,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
       
       if (playerRef.current) {
         try {
-          playerRef.current.destroy();
+          (playerRef.current as { destroy(): void }).destroy();
         } catch (e) {
           console.warn('播放器销毁时出现警告:', e);
         }
@@ -291,7 +293,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
       }
       if (hlsRef.current) {
         try {
-          hlsRef.current.destroy();
+          (hlsRef.current as { destroy(): void }).destroy();
         } catch (e) {
           console.warn('HLS销毁时出现警告:', e);
         }
