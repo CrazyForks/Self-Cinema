@@ -37,8 +37,8 @@ const mockData = {
     tags: ["热播", "高分", "古装", "悬疑", "推荐"]
   },
   episodes: [
-    { id: "1", title: "第1集：神都疑云", episode: 1, duration: "45:30", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", description: "洛阳城内接连发生离奇命案，不良人高秉烛奉命调查...", isVip: false },
-    { id: "2", title: "第2集：暗流涌动", episode: 2, duration: "46:15", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", description: "高秉烛深入调查，发现案件背后的蛛丝马迹...", isVip: false },
+    { id: "1", title: "第1集：神都疑云", episode: 1, duration: "45:30", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "洛阳城内接连发生离奇命案，不良人高秉烛奉命调查...", isVip: false },
+    { id: "2", title: "第2集：暗流涌动", episode: 2, duration: "46:15", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "高秉烛深入调查，发现案件背后的蛛丝马迹...", isVip: false },
     { id: "3", title: "第3集：真相初现", episode: 3, duration: "44:50", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", description: "随着调查的深入，一个巨大的阴谋逐渐浮出水面...", isVip: true },
     { id: "4", title: "第4集：危机四伏", episode: 4, duration: "47:20", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", description: "高秉烛等人陷入前所未有的危机之中...", isVip: true },
     { id: "5", title: "第5集：峰回路转", episode: 5, duration: "48:10", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", description: "在关键时刻，意想不到的转机出现了...", isVip: true },
@@ -126,9 +126,9 @@ export default function WatchPage() {
       </div>
 
       <div className="container mx-auto px-4 py-6 relative z-10">
-        <div className="grid xl:grid-cols-5 gap-6">
+        <div className="flex gap-6">
           {/* 主要内容区域 */}
-          <div className="xl:col-span-4 space-y-6">
+          <div className="flex-1 min-w-0 space-y-6">
             {/* 视频播放器区域 */}
             <div className="relative">
               <Card className="overflow-hidden border-0 shadow-2xl bg-black">
@@ -284,8 +284,8 @@ export default function WatchPage() {
           </div>
 
           {/* 右侧集数选择器 */}
-          <div className="xl:col-span-1">
-            <Card className="sticky top-24 border-2 border-border/50 shadow-lg">
+          <div className="lg:col-span-1 xl:col-span-1">
+            <Card className="sticky top-24 border-2 border-border/50 shadow-lg min-w-0">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Play className="h-5 w-5 text-primary" />
@@ -317,23 +317,23 @@ export default function WatchPage() {
                       >
                         <Button
                           variant="ghost"
-                          className="w-full h-auto p-0 rounded-lg overflow-hidden"
+                          className="w-full h-auto p-0 rounded-lg overflow-hidden min-w-0"
                           onClick={() => handleEpisodeChange(episode.episode)}
                         >
-                          <div className="w-full p-3">
+                          <div className="w-full p-3 min-w-0">
                             {/* 顶部信息栏 */}
                             <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                                   currentEpisode === episode.episode 
                                     ? "bg-primary text-primary-foreground" 
                                     : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-accent-foreground"
                                 }`}>
                                   {episode.episode}
                                 </div>
-                                <span className="text-sm font-medium">第 {episode.episode} 集</span>
+                                <span className="text-xs font-medium truncate">第 {episode.episode} 集</span>
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 shrink-0">
                                 {episode.isVip && (
                                   <Crown className="h-3 w-3 text-yellow-500" />
                                 )}
@@ -342,12 +342,12 @@ export default function WatchPage() {
                             </div>
                             
                             {/* 标题 */}
-                            <h4 className="text-sm font-medium text-left line-clamp-1 mb-1">
+                            <h4 className="text-xs font-medium text-left line-clamp-1 mb-1">
                               {episode.title.replace(`第${episode.episode}集：`, "")}
                             </h4>
                             
                             {/* 描述 */}
-                            <p className="text-xs text-left text-muted-foreground line-clamp-2 leading-relaxed">
+                            <p className="text-xs text-left text-muted-foreground line-clamp-1 leading-relaxed">
                               {episode.description}
                             </p>
                             
