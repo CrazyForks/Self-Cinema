@@ -39,9 +39,9 @@ const mockData = {
   episodes: [
     { id: "1", title: "第1集：神都疑云", episode: 1, duration: "45:30", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "洛阳城内接连发生离奇命案，不良人高秉烛奉命调查...", isVip: false },
     { id: "2", title: "第2集：暗流涌动", episode: 2, duration: "46:15", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "高秉烛深入调查，发现案件背后的蛛丝马迹...", isVip: false },
-    { id: "3", title: "第3集：真相初现", episode: 3, duration: "44:50", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", description: "随着调查的深入，一个巨大的阴谋逐渐浮出水面...", isVip: true },
-    { id: "4", title: "第4集：危机四伏", episode: 4, duration: "47:20", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", description: "高秉烛等人陷入前所未有的危机之中...", isVip: true },
-    { id: "5", title: "第5集：峰回路转", episode: 5, duration: "48:10", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", description: "在关键时刻，意想不到的转机出现了...", isVip: true },
+    { id: "3", title: "第3集：真相初现", episode: 3, duration: "44:50", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "随着调查的深入，一个巨大的阴谋逐渐浮出水面...", isVip: true },
+    { id: "4", title: "第4集：危机四伏", episode: 4, duration: "47:20", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "高秉烛等人陷入前所未有的危机之中...", isVip: true },
+    { id: "5", title: "第5集：峰回路转", episode: 5, duration: "48:10", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "在关键时刻，意想不到的转机出现了...", isVip: true },
   ]
 };
 
@@ -85,13 +85,7 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* 背景图片 */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5 dark:opacity-10"
-        style={{ backgroundImage: `url(${mockData.series.backdropImage})` }}
-      />
-      
+    <div className="min-h-screen bg-background">      
       {/* 顶部导航栏 */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 py-3">
@@ -125,24 +119,20 @@ export default function WatchPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 relative z-10">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
           {/* 主要内容区域 */}
           <div className="flex-1 min-w-0 space-y-6">
             {/* 视频播放器区域 */}
             <div className="relative">
-              <Card className="overflow-hidden border-0 shadow-2xl bg-black">
-                <CardContent className="p-0">
-                  <div className="aspect-video">
-                    <VideoPlayer 
-                      key={currentEpisode} // 强制重新渲染播放器
-                      src={currentEpisodeData?.videoUrl || ""}
-                      poster={mockData.series.backdropImage}
-                      autoplay={false}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <VideoPlayer 
+                  key={currentEpisode} // 强制重新渲染播放器
+                  src={currentEpisodeData?.videoUrl || ""}
+                  poster={mockData.series.backdropImage}
+                  autoplay={false}
+                />
+              </div>
               
               {/* 播放器信息覆盖层 - 临时注释以测试播放器 */}
               {/* <div className="absolute bottom-4 left-4 right-4">

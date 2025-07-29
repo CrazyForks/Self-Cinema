@@ -184,14 +184,6 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
 
         console.log('Plyr 实例创建完成');
 
-
-        // 应用自定义主题
-        const container = player.elements.container;
-        if (container) {
-          container.style.setProperty('--plyr-color-main', 'hsl(var(--primary))');
-          container.style.setProperty('--plyr-video-background', 'hsl(var(--background))');
-        }
-
         // 事件监听
         player.on('ready', () => {
           console.log('播放器已准备就绪');
