@@ -144,8 +144,8 @@ export default function WatchPage() {
                 </CardContent>
               </Card>
               
-              {/* 播放器信息覆盖层 */}
-              <div className="absolute bottom-4 left-4 right-4">
+              {/* 播放器信息覆盖层 - 临时注释以测试播放器 */}
+              {/* <div className="absolute bottom-4 left-4 right-4">
                 <div className="bg-black/60 backdrop-blur-sm rounded-lg p-4 text-white">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default function WatchPage() {
                   <Progress value={watchProgress} className="h-1 bg-white/20" />
                   <p className="text-xs mt-1 text-white/80">已观看 {watchProgress}%</p>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* 剧集详细信息 */}

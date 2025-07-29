@@ -1,19 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
-      rules: {
-        '**/*.{js,jsx,ts,tsx}': ['turbo-loader'],
-      },
+  turbopack: {
+    rules: {
+      '**/*.{js,jsx,ts,tsx}': ['turbo-loader'],
     },
   },
   compiler: {
     removeConsole: false,
   },
   devIndicators: {
-    buildActivity: true,
-    buildActivityPosition: 'bottom-right',
+    position: 'bottom-right',
   },
   webpack: (config, { dev }) => {
     if (dev) {
