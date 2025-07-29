@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { VideoPlayer } from "@/components/video-player";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Play, Clock, Calendar, ChevronLeft, ChevronRight, Star, Heart, Share2, Volume2, Settings, Maximize, Users, Eye, Bookmark, Crown, Monitor } from "lucide-react";
+import { getEpisodeStatus, getProgress } from "@/lib/progress";
+import { Play, Clock, Calendar, ChevronLeft, ChevronRight, Star, Heart, Share2, Volume2, Settings, Maximize, Users, Eye, Bookmark, Crown, Monitor, CheckCircle, PlayCircle } from "lucide-react";
 
 // 模拟数据 - 之后会从API获取
 const mockData = {
@@ -47,16 +48,50 @@ const mockData = {
 
 export default function WatchPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const hash = params.hash as string;
   
-  const [currentEpisode, setCurrentEpisode] = useState(1);
+  // 从 URL 参数获取剧集号，默认为 1
+  const episodeFromUrl = parseInt(searchParams.get('episode') || '1', 10);
+  const [currentEpisode, setCurrentEpisode] = useState(episodeFromUrl);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [watchProgress, setWatchProgress] = useState(65);
+  const [episodeStatuses, setEpisodeStatuses] = useState<Record<string, string>>({});
+
+  // 组件挂载时同步 URL 参数
+  useEffect(() => {
+    const urlEpisode = parseInt(searchParams.get('episode') || '1', 10);
+    if (urlEpisode !== currentEpisode) {
+      setCurrentEpisode(urlEpisode);
+    }
+  }, [searchParams]);
+
+  // 更新剧集播放状态
+  const updateEpisodeStatuses = () => {
+    const statuses: Record<string, string> = {};
+    mockData.episodes.forEach(ep => {
+      statuses[ep.id] = getEpisodeStatus(ep.id);
+    });
+    setEpisodeStatuses(statuses);
+  };
+
+  // 组件挂载时和切换剧集时更新状态
+  useEffect(() => {
+    updateEpisodeStatuses();
+  }, [currentEpisode]);
 
   const handleEpisodeChange = (episodeNumber: number) => {
     setCurrentEpisode(episodeNumber);
-    setWatchProgress(Math.floor(Math.random() * 100));
+    
+    // 更新 URL 参数
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('episode', episodeNumber.toString());
+    router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+    
+    // 延迟更新状态，让播放器有时间保存进度
+    setTimeout(updateEpisodeStatuses, 500);
   };
 
   const currentEpisodeData = mockData.episodes.find(ep => ep.episode === currentEpisode);
@@ -108,6 +143,7 @@ export default function WatchPage() {
                   key={`episode-${currentEpisode}`}
                   src={currentEpisodeData?.videoUrl || "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4"}
                   autoplay={false}
+                  episodeId={currentEpisodeData?.id}
                 />
               </div>
               
@@ -328,8 +364,32 @@ export default function WatchPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs text-muted-foreground">未观看</span>
+                                    {(() => {
+                                      const status = episodeStatuses[episode.id];
+                                      if (status === 'completed') {
+                                        return (
+                                          <>
+                                            <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                            <span className="text-xs text-green-600 dark:text-green-400">已完成</span>
+                                          </>
+                                        );
+                                      } else if (status === 'watching') {
+                                        return (
+                                          <>
+                                            <PlayCircle className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                            <span className="text-xs text-blue-600 dark:text-blue-400">观看中</span>
+                                          </>
+                                        );
+                                      } else {
+                                        return (
+                                          <>
+                                            <Clock className="h-3 w-3 text-muted-foreground" />
+                                            <span className="text-xs text-muted-foreground">未观看</span>
+                                          </>
+                                        );
+                                      }
+                                    })()
+                                    }
                                   </>
                                 )}
                               </div>
@@ -370,6 +430,7 @@ export default function WatchPage() {
                 key={`episode-${currentEpisode}`}
                 src={currentEpisodeData?.videoUrl || "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4"}
                 autoplay={false}
+                episodeId={currentEpisodeData?.id}
               />
             </div>
           </div>
@@ -532,7 +593,29 @@ export default function WatchPage() {
                                 <span className="text-xs text-green-600 dark:text-green-400 font-medium">播放中</span>
                               </>
                             ) : (
-                              <span className="text-xs text-muted-foreground">未观看</span>
+                              <>
+                                {(() => {
+                                  const status = episodeStatuses[episode.id];
+                                  if (status === 'completed') {
+                                    return (
+                                      <>
+                                        <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400 mr-1" />
+                                        <span className="text-xs text-green-600 dark:text-green-400">已完成</span>
+                                      </>
+                                    );
+                                  } else if (status === 'watching') {
+                                    return (
+                                      <>
+                                        <PlayCircle className="h-3 w-3 text-blue-600 dark:text-blue-400 mr-1" />
+                                        <span className="text-xs text-blue-600 dark:text-blue-400">观看中</span>
+                                      </>
+                                    );
+                                  } else {
+                                    return <span className="text-xs text-muted-foreground">未观看</span>;
+                                  }
+                                })()
+                                }
+                              </>
                             )}
                           </div>
                         </div>

@@ -2,19 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import "plyr/dist/plyr.css";
+import { saveProgress, getProgress } from "@/lib/progress";
 
 interface VideoPlayerProps {
   src: string;
   poster?: string;
   autoplay?: boolean;
+  episodeId?: string;
 }
 
-export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps) {
+export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
   const hlsRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!videoRef.current || typeof window === 'undefined') return;
@@ -196,6 +199,15 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
         player.on('ready', () => {
           console.log('播放器已准备就绪');
           setIsLoading(false);
+          
+          // 恢复播放进度
+          if (episodeId) {
+            const savedProgress = getProgress(episodeId);
+            if (savedProgress && savedProgress.currentTime > 10) {
+              console.log(`恢复播放进度: ${savedProgress.currentTime}s`);
+              player.currentTime = savedProgress.currentTime;
+            }
+          }
         });
 
         player.on('canplay', () => {
@@ -205,6 +217,26 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
 
         player.on('loadeddata', () => {
           console.log('视频数据已加载');
+        });
+
+        // 播放进度监听
+        player.on('timeupdate', () => {
+          if (episodeId && player.duration > 0) {
+            // 每5秒保存一次进度
+            if (progressTimerRef.current) {
+              clearTimeout(progressTimerRef.current);
+            }
+            progressTimerRef.current = setTimeout(() => {
+              saveProgress(episodeId, player.currentTime, player.duration);
+            }, 1000);
+          }
+        });
+
+        // 播放结束时标记为已完成
+        player.on('ended', () => {
+          if (episodeId) {
+            saveProgress(episodeId, player.duration, player.duration);
+          }
         });
 
         player.on('error', (event: any) => {
@@ -242,6 +274,13 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
     // 清理函数
     return () => {
       console.log('VideoPlayer 组件清理');
+      
+      // 清理进度保存定时器
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      
       if (playerRef.current) {
         try {
           playerRef.current.destroy();
@@ -259,7 +298,7 @@ export function VideoPlayer({ src, poster, autoplay = false }: VideoPlayerProps)
         hlsRef.current = null;
       }
     };
-  }, [src, autoplay]);
+  }, [src, autoplay, episodeId]);
 
   if (error) {
     return (
