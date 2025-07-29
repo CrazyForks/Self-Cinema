@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import "plyr/dist/plyr.css";
 import { saveProgress, getProgress } from "@/lib/progress";
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 interface VideoPlayerProps {
   src: string;
@@ -15,9 +17,75 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<unknown | null>(null);
   const hlsRef = useRef<unknown | null>(null);
+  const ffmpegRef = useRef<FFmpeg | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTranscoding, setIsTranscoding] = useState(false);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 初始化FFmpeg
+  const initFFmpeg = async () => {
+    if (!ffmpegRef.current) {
+      const ffmpeg = new FFmpeg();
+      
+      try {
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd'
+        ffmpeg.on('log', ({ message }) => {
+          console.log('FFmpeg log:', message);
+        });
+        
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
+        });
+        
+        ffmpegRef.current = ffmpeg;
+        console.log('FFmpeg 初始化成功');
+      } catch (error) {
+        console.error('FFmpeg 初始化失败:', error);
+        throw error;
+      }
+    }
+    return ffmpegRef.current;
+  };
+
+  // 转码MKV为MP4
+  const transcodeMKV = async (videoSrc: string): Promise<string> => {
+    try {
+      setIsTranscoding(true);
+      console.log('开始转码MKV视频:', videoSrc);
+      
+      const ffmpeg = await initFFmpeg();
+      
+      // 下载原始MKV文件
+      await ffmpeg.writeFile('input.mkv', await fetchFile(videoSrc));
+      
+      // 转码为MP4，保持音频轨道
+      await ffmpeg.exec([
+        '-i', 'input.mkv',
+        '-c:v', 'copy',          // 视频编解码器复制（不重新编码）
+        '-c:a', 'aac',           // 音频转为AAC（浏览器兼容）
+        '-movflags', 'faststart', // 优化流媒体播放
+        'output.mp4'
+      ]);
+      
+      // 读取转码后的文件
+      const data = await ffmpeg.readFile('output.mp4');
+      
+      // 创建Blob URL
+      const blob = new Blob([data], { type: 'video/mp4' });
+      const url = URL.createObjectURL(blob);
+      
+      console.log('MKV转码完成:', url);
+      setIsTranscoding(false);
+      
+      return url;
+    } catch (error) {
+      console.error('MKV转码失败:', error);
+      setIsTranscoding(false);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     if (!videoRef.current || typeof window === 'undefined') return;
@@ -65,11 +133,43 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         const { default: Plyr } = await import('plyr');
         console.log('Plyr 导入成功');
 
-        // 检查是否是 HLS 流
+        // 检查文件格式
         const isHLS = src.includes('.m3u8');
+        const isMKV = src.toLowerCase().includes('.mkv');
         console.log('是否为HLS:', isHLS);
+        console.log('是否为MKV:', isMKV);
 
-        if (isHLS) {
+        // 对于MKV格式，先进行转码
+        if (isMKV) {
+          try {
+            console.log('MKV格式检测，开始转码处理');
+            const transcodedUrl = await transcodeMKV(src);
+            video.src = transcodedUrl;
+            console.log('MKV转码完成，设置转码后的视频源');
+          } catch (transcodingError) {
+            console.warn('MKV转码失败，尝试直接播放:', transcodingError);
+            // 转码失败时回退到直接播放
+            video.crossOrigin = 'anonymous';
+            video.preload = 'metadata';
+            
+            // 监听音频轨道
+            video.addEventListener('loadedmetadata', () => {
+              console.log('MKV文件元数据加载完成');
+              console.log('视频轨道数:', video.videoTracks?.length || 0);
+              console.log('音频轨道数:', video.audioTracks?.length || 0);
+              
+              // 确保音频轨道启用
+              if (video.audioTracks && video.audioTracks.length > 0) {
+                for (let i = 0; i < video.audioTracks.length; i++) {
+                  video.audioTracks[i].enabled = true;
+                  console.log(`启用音频轨道 ${i}:`, video.audioTracks[i]);
+                }
+              }
+            });
+            
+            video.src = src;
+          }
+        } else if (isHLS) {
           try {
             const { default: Hls } = await import('hls.js');
 
@@ -190,7 +290,30 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
           // 强制使用内置 SVG 图标
           iconUrl: 'https://npm.onmicrosoft.cn/plyr@3.7.8/dist/plyr.svg',
           // 确保图标正确渲染
-          blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
+          blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
+          // 针对MKV格式优化音频处理
+          ...(isMKV && {
+            previewThumbnails: { enabled: false },
+            captions: { active: false },
+            // 确保音频处理优先级
+            listeners: {
+              seek: null,
+              play: null,
+              pause: null,
+              restart: null,
+              rewind: null,
+              fastForward: null,
+              mute: null,
+              volume: null,
+              captions: null,
+              download: null,
+              fullscreen: null,
+              pip: null,
+              airplay: null,
+              speed: null,
+              quality: null
+            }
+          })
         });
 
         console.log('Plyr 实例创建完成');
@@ -199,6 +322,26 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         player.on('ready', () => {
           console.log('播放器已准备就绪');
           setIsLoading(false);
+          
+          // 对于MKV格式，额外检查音频状态
+          if (isMKV) {
+            const videoElement = videoRef.current;
+            if (videoElement) {
+              console.log('MKV音频检查 - muted:', videoElement.muted);
+              console.log('MKV音频检查 - volume:', videoElement.volume);
+              
+              // 确保音频未静音且音量正常
+              videoElement.muted = false;
+              videoElement.volume = 1;
+              
+              // 强制触发音频上下文（某些浏览器需要）
+              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+              if (audioContext.state === 'suspended') {
+                console.log('恢复音频上下文');
+                audioContext.resume();
+              }
+            }
+          }
           
           // 恢复播放进度
           if (episodeId) {
@@ -299,6 +442,17 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         }
         hlsRef.current = null;
       }
+      
+      // 清理FFmpeg实例
+      if (ffmpegRef.current) {
+        try {
+          // FFmpeg实例不需要显式销毁，只需要清空引用
+          ffmpegRef.current = null;
+          console.log('FFmpeg 实例已清理');
+        } catch (e) {
+          console.warn('FFmpeg清理时出现警告:', e);
+        }
+      }
     };
   }, [src, autoplay, episodeId]);
 
@@ -321,11 +475,18 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
 
   return (
     <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
-      {isLoading && (
+      {(isLoading || isTranscoding) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-sm">正在加载播放器...</p>
+            <p className="text-sm">
+              {isTranscoding ? '正在转码MKV视频，请稍候...' : '正在加载播放器...'}
+            </p>
+            {isTranscoding && (
+              <p className="text-xs text-gray-400 mt-2">
+                首次播放MKV需要转码处理音频兼容性
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -337,6 +498,13 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         poster={poster}
         preload="metadata"
         style={{ aspectRatio: '16/9' }}
+        // MKV格式额外属性
+        {...(src.toLowerCase().includes('.mkv') && {
+          controls: false,
+          muted: false,
+          volume: 1.0,
+          'data-setup': '{"techOrder": ["html5"]}'
+        })}
       >
         <track kind="captions" label="中文" srcLang="zh" />
         您的浏览器不支持视频播放。请更新浏览器或使用其他浏览器。
