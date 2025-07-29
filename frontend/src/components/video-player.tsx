@@ -13,8 +13,8 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<any>(null);
-  const hlsRef = useRef<any>(null);
+  const playerRef = useRef<unknown | null>(null);
+  const hlsRef = useRef<unknown | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +88,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
                 console.log('HLS manifest loaded');
               });
 
-              hls.on(Hls.Events.ERROR, (event: any, data: any) => {
+              hls.on(Hls.Events.ERROR, (_event: unknown, data: { details: string; fatal: boolean; type: string }) => {
                 console.error('HLS error:', data);
                 setError(`HLS错误: ${data.details}`);
                 if (data.fatal) {
@@ -111,7 +111,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
               console.log('浏览器不支持 HLS，使用直接源');
               video.src = src;
             }
-          } catch (error) {
+          } catch {
             console.warn('HLS.js not available, using direct video source');
             video.src = src;
           }
@@ -239,7 +239,7 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
           }
         });
 
-        player.on('error', (event: any) => {
+        player.on('error', (_event: unknown) => {
           console.error('播放器错误:', event);
           setError('播放器错误');
           setIsLoading(false);
