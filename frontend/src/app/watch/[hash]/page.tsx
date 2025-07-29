@@ -138,7 +138,7 @@ export default function WatchPage() {
               </Button>
               <div className="hidden md:flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">风</span>
+                  <span className="text-white font-bold text-sm">{series.title.charAt(0)}</span>
                 </div>
                 <div>
                   <h1 className="font-semibold text-sm">{series.title}</h1>
