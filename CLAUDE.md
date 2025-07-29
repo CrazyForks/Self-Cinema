@@ -39,6 +39,237 @@ self-cinema/
     └── package.json      # Node.js依赖
 ```
 
+## 后端API接口文档
+
+根据前端实际使用的数据结构，以下是完整的API接口规范：
+
+### 数据模型定义
+
+#### Series（电视剧）数据结构
+```json
+{
+  "id": "string",
+  "title": "string",              // 剧集标题
+  "englishTitle": "string",       // 英文标题
+  "description": "string",        // 剧情简介
+  "coverImage": "string",         // 封面图片URL
+  "backdropImage": "string",      // 背景图片URL
+  "totalEpisodes": "number",      // 总集数
+  "releaseYear": "number",        // 发行年份
+  "genre": ["string"],            // 类型标签数组
+  "rating": "number",             // 评分 (0-10)
+  "views": "string",              // 播放量显示文本
+  "status": "string",             // 状态：已完结/更新中/待播出
+  "director": "string",           // 导演
+  "actors": ["string"],           // 主演数组
+  "region": "string",             // 地区
+  "language": "string",           // 语言
+  "updateTime": "string",         // 更新时间说明
+  "tags": ["string"],             // 标签数组
+  "created_at": "string"          // 创建时间 ISO格式
+}
+```
+
+#### Episode（剧集）数据结构
+```json
+{
+  "id": "string",
+  "series_id": "string",          // 所属电视剧ID
+  "episode": "number",            // 集数
+  "title": "string",              // 集标题
+  "description": "string",        // 集简介
+  "videoUrl": "string",           // 视频播放地址
+  "duration": "string",           // 时长显示文本 "45:30"
+  "cover_image": "string",        // 剧集封面图
+  "isVip": "boolean",             // 是否VIP专享
+  "created_at": "string"          // 创建时间 ISO格式
+}
+```
+
+### API接口规范
+
+#### 1. 认证相关
+```
+POST /auth/login
+Content-Type: application/json
+
+Request Body:
+{
+  "username": "string",
+  "password": "string"
+}
+
+Response:
+{
+  "access_token": "string",
+  "token_type": "Bearer"
+}
+```
+
+#### 2. 电视剧管理
+
+##### 获取所有电视剧
+```
+GET /series
+Response: Series[]
+```
+
+##### 获取单个电视剧详情
+```
+GET /series/{series_id}
+Response: Series
+```
+
+##### 创建电视剧 (需认证)
+```
+POST /series
+Authorization: Bearer {token}
+Content-Type: application/json
+
+Request Body:
+{
+  "title": "string",
+  "englishTitle": "string",
+  "description": "string",
+  "coverImage": "string",
+  "backdropImage": "string",
+  "totalEpisodes": "number",
+  "releaseYear": "number",
+  "genre": ["string"],
+  "rating": "number",
+  "views": "string",
+  "status": "string",
+  "director": "string",
+  "actors": ["string"],
+  "region": "string",
+  "language": "string",
+  "updateTime": "string",
+  "tags": ["string"]
+}
+
+Response: Series
+```
+
+##### 更新电视剧 (需认证)
+```
+PUT /series/{series_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+Request Body: (同创建电视剧)
+Response: Series
+```
+
+##### 删除电视剧 (需认证)
+```
+DELETE /series/{series_id}
+Authorization: Bearer {token}
+Response: {"message": "删除成功"}
+```
+
+#### 3. 剧集管理
+
+##### 获取电视剧的所有剧集
+```
+GET /series/{series_id}/episodes
+Response: Episode[]
+```
+
+##### 获取单个剧集详情
+```
+GET /episodes/{episode_id}
+Response: Episode
+```
+
+##### 创建剧集 (需认证)
+```
+POST /episodes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+Request Body:
+{
+  "series_id": "string",
+  "episode": "number",
+  "title": "string",
+  "description": "string",
+  "videoUrl": "string",
+  "duration": "string",
+  "cover_image": "string",
+  "isVip": "boolean"
+}
+
+Response: Episode
+```
+
+##### 更新剧集 (需认证)
+```
+PUT /episodes/{episode_id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+Request Body: (同创建剧集)
+Response: Episode
+```
+
+##### 删除剧集 (需认证)
+```
+DELETE /episodes/{episode_id}
+Authorization: Bearer {token}
+Response: {"message": "删除成功"}
+```
+
+#### 4. 分享功能
+
+##### 生成分享链接
+```
+POST /series/{series_id}/share
+Response: 
+{
+  "shareUrl": "string",     // 完整的分享URL
+  "hash": "string",         // 分享hash
+  "expiresAt": "string"     // 过期时间 (可选)
+}
+```
+
+##### 通过分享链接获取剧集信息
+```
+GET /watch/{hash}
+Response:
+{
+  "series": Series,
+  "episodes": Episode[]
+}
+```
+
+### 错误响应格式
+
+所有API的错误响应统一格式：
+```json
+{
+  "error": "string",        // 错误类型
+  "message": "string",      // 错误详细信息
+  "status_code": "number"   // HTTP状态码
+}
+```
+
+### 常见HTTP状态码
+- `200 OK` - 请求成功
+- `201 Created` - 创建成功
+- `400 Bad Request` - 请求参数错误
+- `401 Unauthorized` - 未认证
+- `403 Forbidden` - 权限不足
+- `404 Not Found` - 资源不存在
+- `500 Internal Server Error` - 服务器内部错误
+
+### 特殊说明
+
+1. **视频格式支持**: 后端需支持 MP4、MKV、M3U8 等视频格式的URL
+2. **图片处理**: 封面图和背景图支持相对路径或完整URL
+3. **分享机制**: 分享链接应该包含hash参数，无需认证即可访问
+4. **播放进度**: 前端通过localStorage管理，后端无需存储
+5. **数据分页**: 如果剧集数量较多，建议添加分页参数
+
 ## 后端实现规划 (FastAPI 扁平化)
 
 ### 数据库模型设计
