@@ -50,17 +50,9 @@ export default function WatchPage() {
   const hash = params.hash as string;
   
   const [currentEpisode, setCurrentEpisode] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [watchProgress, setWatchProgress] = useState(65);
-
-  useEffect(() => {
-    // 模拟API调用
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  }, [hash]);
 
   const handleEpisodeChange = (episodeNumber: number) => {
     setCurrentEpisode(episodeNumber);
@@ -68,21 +60,6 @@ export default function WatchPage() {
   };
 
   const currentEpisodeData = mockData.episodes.find(ep => ep.episode === currentEpisode);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-primary/20 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <p className="text-lg font-medium text-foreground">正在加载影片...</p>
-          <p className="text-sm text-muted-foreground mt-1">为您准备最佳观影体验</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">      
@@ -127,9 +104,7 @@ export default function WatchPage() {
             <div className="relative">
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                 <VideoPlayer 
-                  key={currentEpisode} // 强制重新渲染播放器
-                  src={currentEpisodeData?.videoUrl || ""}
-                  poster={mockData.series.backdropImage}
+                  src={currentEpisodeData?.videoUrl || "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4"}
                   autoplay={false}
                 />
               </div>
