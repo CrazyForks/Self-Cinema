@@ -108,7 +108,9 @@ export default function WatchPage() {
                 返回
               </Button>
               <div className="hidden md:flex items-center gap-2">
-                <img src={mockData.series.coverImage} alt={mockData.series.title} className="w-8 h-12 object-cover rounded" />
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">风</span>
+                </div>
                 <div>
                   <h1 className="font-semibold text-sm">{mockData.series.title}</h1>
                   <p className="text-xs text-muted-foreground">{currentEpisodeData?.title}</p>
