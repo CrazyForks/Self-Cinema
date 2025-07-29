@@ -160,6 +160,11 @@ class ApiClient {
     const response = await this.api.post(`/series/${seriesId}/share`);
     return response.data;
   }
+
+  async getWatchData(hash: string): Promise<{series: SeriesAPI, episodes: EpisodeAPI[]}> {
+    const response = await this.api.get(`/watch/${hash}`);
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();

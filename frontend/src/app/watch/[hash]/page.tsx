@@ -13,44 +13,20 @@ import { Progress } from "@/components/ui/progress";
 import { VideoPlayer } from "@/components/video-player";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getEpisodeStatus, getProgress } from "@/lib/progress";
-import { Play, Clock, Calendar, ChevronLeft, ChevronRight, Star, Heart, Share2, Volume2, Settings, Maximize, Users, Eye, Bookmark, Crown, Monitor, CheckCircle, PlayCircle } from "lucide-react";
-
-// 模拟数据 - 之后会从API获取
-const mockData = {
-  series: {
-    id: "1",
-    title: "风起洛阳",
-    englishTitle: "The Wind Blows from Longxi",
-    description: "武则天统治后期，洛阳发生了一系列离奇命案。不良人组织的密探高秉烛、洛阳县尉郭得友以及司宾寺主簿张归霸受命调查此案，却在调查过程中发现了一个威胁大唐江山社稷的惊天阴谋。随着案情抽丝剥茧，一个隐藏在暗处的反叛集团浮出水面...",
-    coverImage: "https://via.placeholder.com/300x450/1a1a1a/ffffff?text=风起洛阳",
-    backdropImage: "https://via.placeholder.com/1920x1080/2a2a2a/ffffff?text=风起洛阳+背景",
-    totalEpisodes: 39,
-    releaseYear: 2021,
-    genre: ["古装", "悬疑", "历史", "剧情"],
-    rating: 8.2,
-    views: "2.1亿",
-    status: "已完结",
-    director: "谢泽",
-    actors: ["王一博", "宋茜", "张志坚", "咏梅"],
-    region: "中国大陆",
-    language: "普通话",
-    updateTime: "每周三、四20:00更新",
-    tags: ["热播", "高分", "古装", "悬疑", "推荐"]
-  },
-  episodes: [
-    { id: "1", title: "第1集：神都疑云", episode: 1, duration: "45:30", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "洛阳城内接连发生离奇命案，不良人高秉烛奉命调查...", isVip: false },
-    { id: "2", title: "第2集：暗流涌动", episode: 2, duration: "46:15", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "高秉烛深入调查，发现案件背后的蛛丝马迹...", isVip: false },
-    { id: "3", title: "第3集：真相初现", episode: 3, duration: "44:50", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "随着调查的深入，一个巨大的阴谋逐渐浮出水面...", isVip: true },
-    { id: "4", title: "第4集：危机四伏", episode: 4, duration: "47:20", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "高秉烛等人陷入前所未有的危机之中...", isVip: true },
-    { id: "5", title: "第5集：峰回路转", episode: 5, duration: "48:10", videoUrl: "https://media.onmicrosoft.cn/Re-He-Road-LIZHI-2018-Unplugged.mp4", description: "在关键时刻，意想不到的转机出现了...", isVip: true },
-  ]
-};
+import { SeriesAPI, EpisodeAPI, apiClient } from "@/lib/api";
+import { Play, Clock, Calendar, ChevronLeft, ChevronRight, Star, Heart, Share2, Volume2, Settings, Maximize, Users, Eye, Bookmark, Crown, Monitor, CheckCircle, PlayCircle, XCircle } from "lucide-react";
 
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const hash = params.hash as string;
+  
+  // 状态管理
+  const [series, setSeries] = useState<SeriesAPI | null>(null);
+  const [episodes, setEpisodes] = useState<EpisodeAPI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   
   // 从 URL 参数获取剧集号，默认为 1
   const episodeFromUrl = parseInt(searchParams.get('episode') || '1', 10);
@@ -59,6 +35,27 @@ export default function WatchPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [watchProgress, setWatchProgress] = useState(65);
   const [episodeStatuses, setEpisodeStatuses] = useState<Record<string, string>>({});
+
+  // 获取数据
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await apiClient.getWatchData(hash);
+        setSeries(data.series);
+        setEpisodes(data.episodes);
+      } catch (err) {
+        console.error('Failed to load watch data:', err);
+        setError('加载失败，请检查分享链接是否有效');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (hash) {
+      loadData();
+    }
+  }, [hash]);
 
   // 组件挂载时同步 URL 参数
   useEffect(() => {
@@ -71,7 +68,7 @@ export default function WatchPage() {
   // 更新剧集播放状态
   const updateEpisodeStatuses = () => {
     const statuses: Record<string, string> = {};
-    mockData.episodes.forEach(ep => {
+    episodes.forEach(ep => {
       statuses[ep.id] = getEpisodeStatus(ep.id);
     });
     setEpisodeStatuses(statuses);
@@ -79,8 +76,10 @@ export default function WatchPage() {
 
   // 组件挂载时和切换剧集时更新状态
   useEffect(() => {
-    updateEpisodeStatuses();
-  }, [currentEpisode]);
+    if (episodes.length > 0) {
+      updateEpisodeStatuses();
+    }
+  }, [currentEpisode, episodes]);
 
   const handleEpisodeChange = (episodeNumber: number) => {
     setCurrentEpisode(episodeNumber);
@@ -94,7 +93,37 @@ export default function WatchPage() {
     setTimeout(updateEpisodeStatuses, 500);
   };
 
-  const currentEpisodeData = mockData.episodes.find(ep => ep.episode === currentEpisode);
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 错误状态
+  if (error || !series) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">加载失败</h2>
+          <p className="text-muted-foreground mb-4">{error || '未找到相关内容'}</p>
+          <Button onClick={() => window.location.reload()}>
+            重新加载
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentEpisodeData = episodes.find(ep => ep.episode === currentEpisode);
 
   return (
     <div className="min-h-screen bg-background">      
@@ -112,7 +141,7 @@ export default function WatchPage() {
                   <span className="text-white font-bold text-sm">风</span>
                 </div>
                 <div>
-                  <h1 className="font-semibold text-sm">{mockData.series.title}</h1>
+                  <h1 className="font-semibold text-sm">{series.title}</h1>
                   <p className="text-xs text-muted-foreground">{currentEpisodeData?.title}</p>
                 </div>
               </div>
@@ -170,7 +199,7 @@ export default function WatchPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Eye className="h-4 w-4" />
-                      {mockData.series.views}
+                      {series.views}
                     </div>
                   </div>
                   <Progress value={watchProgress} className="h-1 bg-white/20" />
@@ -186,32 +215,32 @@ export default function WatchPage() {
                   <div className="space-y-3">
                     <div>
                       <CardTitle className="text-3xl font-bold mb-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 dark:from-primary dark:via-blue-600 dark:to-purple-600 bg-clip-text text-transparent">
-                        {mockData.series.title}
+                        {series.title}
                       </CardTitle>
-                      <p className="text-lg text-muted-foreground">{mockData.series.englishTitle}</p>
+                      <p className="text-lg text-muted-foreground">{series.englishTitle}</p>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{mockData.series.rating}</span>
+                        <span className="font-medium">{series.rating}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {mockData.series.releaseYear}
+                        {series.releaseYear}
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {mockData.series.status}
+                        {series.status}
                       </div>
                       <div className="flex items-center gap-1">
                         <Play className="h-4 w-4" />
-                        第 {currentEpisode} 集 / 共 {mockData.series.totalEpisodes} 集
+                        第 {currentEpisode} 集 / 共 {series.totalEpisodes} 集
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 max-w-xs">
-                    {mockData.series.tags.map((tag, index) => (
-                      <Badge key={tag} variant="outline" className={`
+                    {series.tags.map((tag, index) => (
+                      <Badge key={`tag-${index}`} variant="outline" className={`
                         ${index === 0 ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/50 dark:border-red-800 dark:text-red-400' : ''}
                         ${index === 1 ? 'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-800 dark:text-yellow-400' : ''}
                         ${index === 2 ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-400' : ''}
@@ -234,36 +263,36 @@ export default function WatchPage() {
                   <TabsContent value="info" className="mt-6 space-y-4">
                     <div>
                       <h3 className="font-semibold mb-2 text-lg">剧情简介</h3>
-                      <p className="text-muted-foreground leading-relaxed">{mockData.series.description}</p>
+                      <p className="text-muted-foreground leading-relaxed">{series.description}</p>
                     </div>
                     <Separator />
                     <div className="grid md:grid-cols-2 gap-4 text-sm">
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">导演：</span>
-                          <span>{mockData.series.director}</span>
+                          <span>{series.director}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">地区：</span>
-                          <span>{mockData.series.region}</span>
+                          <span>{series.region}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">语言：</span>
-                          <span>{mockData.series.language}</span>
+                          <span>{series.language}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">类型：</span>
-                          <span>{mockData.series.genre.join(" / ")}</span>
+                          <span>{series.genre.join(" / ")}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">更新：</span>
-                          <span>{mockData.series.updateTime}</span>
+                          <span>{series.updateTime}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">播放量：</span>
-                          <span>{mockData.series.views}</span>
+                          <span>{series.views}</span>
                         </div>
                       </div>
                     </div>
@@ -271,8 +300,8 @@ export default function WatchPage() {
                   
                   <TabsContent value="cast" className="mt-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {mockData.series.actors.map((actor, index) => (
-                        <div key={actor} className="text-center">
+                      {series.actors.map((actor, index) => (
+                        <div key={`actor-${index}`} className="text-center">
                           <Avatar className="w-16 h-16 mx-auto mb-2">
                             <AvatarImage src={`https://via.placeholder.com/64x64/3b82f6/ffffff?text=${actor.charAt(0)}`} />
                             <AvatarFallback>{actor.charAt(0)}</AvatarFallback>
@@ -297,9 +326,9 @@ export default function WatchPage() {
                   选集播放
                 </CardTitle>
                 <CardDescription className="flex items-center justify-between">
-                  <span>共 {mockData.series.totalEpisodes} 集</span>
+                  <span>共 {series.totalEpisodes} 集</span>
                   <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400">
-                    {mockData.series.status}
+                    {series.status}
                   </Badge>
                 </CardDescription>
               </CardHeader>
@@ -311,7 +340,7 @@ export default function WatchPage() {
                 </div>
                 <ScrollArea className="h-[500px]">
                   <div className="space-y-2 p-4 pt-2">
-                    {mockData.episodes.map((episode) => (
+                    {episodes.map((episode) => (
                       <div
                         key={episode.id}
                         className={`relative group rounded-lg border-2 transition-all duration-300 hover:shadow-md ${
@@ -413,9 +442,9 @@ export default function WatchPage() {
                   <div className="text-xs text-muted-foreground text-center space-y-1">
                     <div className="flex items-center justify-between">
                       <span>观看进度</span>
-                      <span>{currentEpisode} / {mockData.series.totalEpisodes}</span>
+                      <span>{currentEpisode} / {series.totalEpisodes}</span>
                     </div>
-                    <Progress value={(currentEpisode / mockData.series.totalEpisodes) * 100} className="h-1" />
+                    <Progress value={(currentEpisode / series.totalEpisodes) * 100} className="h-1" />
                   </div>
                 </div>
               </CardContent>
@@ -443,27 +472,27 @@ export default function WatchPage() {
               <div className="space-y-3">
                 <div>
                   <CardTitle className="text-2xl font-bold mb-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 dark:from-primary dark:via-blue-600 dark:to-purple-600 bg-clip-text text-transparent">
-                    {mockData.series.title}
+                    {series.title}
                   </CardTitle>
-                  <p className="text-base text-muted-foreground">{mockData.series.englishTitle}</p>
+                  <p className="text-base text-muted-foreground">{series.englishTitle}</p>
                 </div>
                 <div className="flex items-center gap-3 text-sm flex-wrap">
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{mockData.series.rating}</span>
+                    <span className="font-medium">{series.rating}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {mockData.series.releaseYear}
+                    {series.releaseYear}
                   </div>
                   <div className="flex items-center gap-1">
                     <Play className="h-4 w-4" />
-                    第 {currentEpisode} 集 / 共 {mockData.series.totalEpisodes} 集
+                    第 {currentEpisode} 集 / 共 {series.totalEpisodes} 集
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {mockData.series.tags.map((tag, index) => (
-                    <Badge key={tag} variant="outline" className={`
+                  {series.tags.map((tag, index) => (
+                    <Badge key={`mobile-tag-${index}`} variant="outline" className={`
                       ${index === 0 ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/50 dark:border-red-800 dark:text-red-400' : ''}
                       ${index === 1 ? 'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-800 dark:text-yellow-400' : ''}
                       ${index === 2 ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-400' : ''}
@@ -486,33 +515,33 @@ export default function WatchPage() {
                 <TabsContent value="info" className="mt-6 space-y-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-base">剧情简介</h3>
-                    <p className="text-muted-foreground leading-relaxed text-sm">{mockData.series.description}</p>
+                    <p className="text-muted-foreground leading-relaxed text-sm">{series.description}</p>
                   </div>
                   <Separator />
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">导演：</span>
-                      <span>{mockData.series.director}</span>
+                      <span>{series.director}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">地区：</span>
-                      <span>{mockData.series.region}</span>
+                      <span>{series.region}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">类型：</span>
-                      <span>{mockData.series.genre.join(" / ")}</span>
+                      <span>{series.genre.join(" / ")}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">播放量：</span>
-                      <span>{mockData.series.views}</span>
+                      <span>{series.views}</span>
                     </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="cast" className="mt-6">
                   <div className="grid grid-cols-2 gap-4">
-                    {mockData.series.actors.map((actor, index) => (
-                      <div key={actor} className="text-center">
+                    {series.actors.map((actor, index) => (
+                      <div key={`mobile-actor-${index}`} className="text-center">
                         <Avatar className="w-12 h-12 mx-auto mb-2">
                           <AvatarImage src={`https://via.placeholder.com/48x48/3b82f6/ffffff?text=${actor.charAt(0)}`} />
                           <AvatarFallback>{actor.charAt(0)}</AvatarFallback>
@@ -535,9 +564,9 @@ export default function WatchPage() {
                 选集播放
               </CardTitle>
               <CardDescription className="flex items-center justify-between">
-                <span>共 {mockData.series.totalEpisodes} 集</span>
+                <span>共 {series.totalEpisodes} 集</span>
                 <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400">
-                  {mockData.series.status}
+                  {series.status}
                 </Badge>
               </CardDescription>
             </CardHeader>
@@ -550,7 +579,7 @@ export default function WatchPage() {
               {/* 移动端使用网格布局 */}
               <div className="p-4 pt-2">
                 <div className="grid grid-cols-2 gap-3">
-                  {mockData.episodes.map((episode) => (
+                  {episodes.map((episode) => (
                     <div
                       key={episode.id}
                       className={`relative group rounded-lg border-2 transition-all duration-300 ${
@@ -632,9 +661,9 @@ export default function WatchPage() {
                 <div className="text-xs text-muted-foreground text-center space-y-1">
                   <div className="flex items-center justify-between">
                     <span>观看进度</span>
-                    <span>{currentEpisode} / {mockData.series.totalEpisodes}</span>
+                    <span>{currentEpisode} / {series.totalEpisodes}</span>
                   </div>
-                  <Progress value={(currentEpisode / mockData.series.totalEpisodes) * 100} className="h-1" />
+                  <Progress value={(currentEpisode / series.totalEpisodes) * 100} className="h-1" />
                 </div>
               </div>
             </CardContent>
@@ -664,7 +693,7 @@ export default function WatchPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentEpisode >= mockData.series.totalEpisodes}
+                disabled={currentEpisode >= series.totalEpisodes}
                 onClick={() => handleEpisodeChange(currentEpisode + 1)}
                 className="gap-2"
               >
