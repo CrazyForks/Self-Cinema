@@ -10,7 +10,7 @@ export default function Home() {
     <div className="min-h-screen relative overflow-hidden">
       <DotPattern />
       
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-4 z-100">
         <ThemeToggle />
       </div>
       
@@ -25,7 +25,7 @@ export default function Home() {
           </div>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 animate-in slide-in-from-bottom duration-1000 delay-200">
-            私人影院系统 - 享受专属的观影体验 1
+            私人影院系统 - 享受专属的观影体验
           </p>
           
           <div className="grid md:grid-cols-2 gap-8 mb-12">

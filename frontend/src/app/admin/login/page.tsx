@@ -56,7 +56,7 @@ export default function LoginPage() {
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <DotPattern />
       
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-4 z-100">
         <ThemeToggle />
       </div>
       
