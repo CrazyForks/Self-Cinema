@@ -1,5 +1,87 @@
 import axios, { AxiosInstance } from 'axios';
-import { LoginRequest, LoginResponse, Series, Episode, CreateSeriesRequest, CreateEpisodeRequest } from '@/types';
+
+// 完整的API数据结构定义
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export interface SeriesAPI {
+  id: string;
+  title: string;
+  englishTitle?: string;
+  description?: string;
+  coverImage?: string;
+  backdropImage?: string;
+  totalEpisodes: number;
+  releaseYear?: number;
+  genre: string[];
+  rating: number;
+  views: string;
+  status: string;
+  director?: string;
+  actors: string[];
+  region?: string;
+  language?: string;
+  updateTime?: string;
+  tags: string[];
+  created_at: string;
+}
+
+export interface EpisodeAPI {
+  id: string;
+  series_id: string;
+  episode: number;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  duration?: string;
+  cover_image?: string;
+  isVip: boolean;
+  created_at: string;
+}
+
+export interface CreateSeriesRequest {
+  title: string;
+  englishTitle?: string;
+  description?: string;
+  coverImage?: string;
+  backdropImage?: string;
+  totalEpisodes: number;
+  releaseYear?: number;
+  genre: string[];
+  rating: number;
+  views: string;
+  status: string;
+  director?: string;
+  actors: string[];
+  region?: string;
+  language?: string;
+  updateTime?: string;
+  tags: string[];
+}
+
+export interface CreateEpisodeRequest {
+  series_id: string;
+  episode: number;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  duration?: string;
+  cover_image?: string;
+  isVip: boolean;
+}
+
+export interface ShareResponse {
+  shareUrl: string;
+  hash: string;
+  expiresAt?: string;
+}
 
 class ApiClient {
   private api: AxiosInstance;
@@ -26,46 +108,56 @@ class ApiClient {
     return response.data;
   }
 
-  async getSeries(): Promise<Series[]> {
+  async getSeries(): Promise<SeriesAPI[]> {
     const response = await this.api.get('/series');
     return response.data;
   }
 
-  async createSeries(data: CreateSeriesRequest): Promise<Series> {
+  async getSeriesById(id: string): Promise<SeriesAPI> {
+    const response = await this.api.get(`/series/${id}`);
+    return response.data;
+  }
+
+  async createSeries(data: CreateSeriesRequest): Promise<SeriesAPI> {
     const response = await this.api.post('/series', data);
     return response.data;
   }
 
-  async updateSeries(id: number, data: Partial<CreateSeriesRequest>): Promise<Series> {
+  async updateSeries(id: string, data: CreateSeriesRequest): Promise<SeriesAPI> {
     const response = await this.api.put(`/series/${id}`, data);
     return response.data;
   }
 
-  async deleteSeries(id: number): Promise<void> {
+  async deleteSeries(id: string): Promise<void> {
     await this.api.delete(`/series/${id}`);
   }
 
-  async getEpisodes(seriesId: number): Promise<Episode[]> {
+  async getEpisodes(seriesId: string): Promise<EpisodeAPI[]> {
     const response = await this.api.get(`/series/${seriesId}/episodes`);
     return response.data;
   }
 
-  async createEpisode(data: CreateEpisodeRequest): Promise<Episode> {
+  async getEpisodeById(id: string): Promise<EpisodeAPI> {
+    const response = await this.api.get(`/episodes/${id}`);
+    return response.data;
+  }
+
+  async createEpisode(data: CreateEpisodeRequest): Promise<EpisodeAPI> {
     const response = await this.api.post('/episodes', data);
     return response.data;
   }
 
-  async updateEpisode(id: number, data: Partial<CreateEpisodeRequest>): Promise<Episode> {
+  async updateEpisode(id: string, data: CreateEpisodeRequest): Promise<EpisodeAPI> {
     const response = await this.api.put(`/episodes/${id}`, data);
     return response.data;
   }
 
-  async deleteEpisode(id: number): Promise<void> {
+  async deleteEpisode(id: string): Promise<void> {
     await this.api.delete(`/episodes/${id}`);
   }
 
-  async getShareLink(seriesId: number): Promise<{ share_url: string }> {
-    const response = await this.api.get(`/series/${seriesId}/share`);
+  async createShareLink(seriesId: string): Promise<ShareResponse> {
+    const response = await this.api.post(`/series/${seriesId}/share`);
     return response.data;
   }
 }
