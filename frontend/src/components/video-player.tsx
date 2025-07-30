@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import "plyr/dist/plyr.css";
 import { saveProgress, getProgress } from "@/lib/progress";
+import { ErrorBoundary } from "./error-boundary";
 
 interface VideoPlayerProps {
   src: string;
@@ -11,11 +12,12 @@ interface VideoPlayerProps {
   episodeId?: string;
 }
 
-export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoPlayerProps) {
+function VideoPlayerCore({ src, poster, autoplay = false, episodeId }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<unknown | null>(null);
   const hlsRef = useRef<unknown | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -23,12 +25,14 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
     if (!videoRef.current || typeof window === 'undefined') return;
     if (!src) {
       setError('没有提供视频源');
+      setErrorDetails('视频源URL为空或未定义');
       setIsLoading(false);
       return;
     }
 
     console.log('VideoPlayer useEffect triggered - src:', src);
     setError(null);
+    setErrorDetails(null);
     setIsLoading(true);
 
     const initializePlayer = async () => {
@@ -90,7 +94,9 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
 
               hls.on(Hls.Events.ERROR, (_event: unknown, data: { details: string; fatal: boolean; type: unknown }) => {
                 console.error('HLS error:', data);
-                setError(`HLS错误: ${data.details}`);
+                const errorMsg = `HLS错误: ${data.details}`;
+                setError(errorMsg);
+                setErrorDetails(`错误类型: ${String(data.type)}, 详情: ${data.details}, 致命错误: ${data.fatal}`);
                 if (data.fatal) {
                   switch (data.type) {
                     case Hls.ErrorTypes.NETWORK_ERROR:
@@ -241,16 +247,43 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
           }
         });
 
-        player.on('error', (_event: unknown) => {
+        player.on('error', (event: unknown) => {
           console.error('播放器错误:', event);
-          setError('播放器错误');
+          const errorMsg = 'Plyr播放器错误';
+          setError(errorMsg);
+          setErrorDetails(event ? String(event) : '未知播放器错误');
           setIsLoading(false);
         });
 
         // 监听原生视频错误
         video.addEventListener('error', (e) => {
           console.error('视频元素错误:', e);
-          setError('视频加载失败');
+          const target = e.target as HTMLVideoElement;
+          const errorCode = target?.error?.code;
+          const errorMsg = '视频加载失败';
+          let errorDetail = '未知视频错误';
+          
+          if (errorCode) {
+            switch (errorCode) {
+              case 1:
+                errorDetail = 'MEDIA_ERR_ABORTED: 视频加载被中止';
+                break;
+              case 2:
+                errorDetail = 'MEDIA_ERR_NETWORK: 网络错误导致视频下载失败';
+                break;
+              case 3:
+                errorDetail = 'MEDIA_ERR_DECODE: 视频解码错误';
+                break;
+              case 4:
+                errorDetail = 'MEDIA_ERR_SRC_NOT_SUPPORTED: 视频格式不支持或源不可用';
+                break;
+              default:
+                errorDetail = `未知错误码: ${errorCode}`;
+            }
+          }
+          
+          setError(errorMsg);
+          setErrorDetails(errorDetail);
           setIsLoading(false);
         });
 
@@ -259,14 +292,32 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
 
       } catch (error) {
         console.error('播放器初始化失败:', error);
-        setError(error instanceof Error ? error.message : '播放器初始化失败');
+        const errorMsg = '播放器初始化失败';
+        let errorDetail = '未知初始化错误';
+        
+        if (error instanceof Error) {
+          errorDetail = `${error.name}: ${error.message}`;
+          if (error.stack) {
+            errorDetail += `\n堆栈信息: ${error.stack.split('\n').slice(0, 3).join('\n')}`;
+          }
+        } else {
+          errorDetail = String(error);
+        }
+        
+        setError(errorMsg);
+        setErrorDetails(errorDetail);
         setIsLoading(false);
 
         // 降级到原生视频播放器
         if (videoRef.current) {
           console.log('降级到原生播放器');
-          videoRef.current.src = src;
-          videoRef.current.controls = true;
+          try {
+            videoRef.current.src = src;
+            videoRef.current.controls = true;
+          } catch (fallbackError) {
+            console.error('原生播放器降级也失败:', fallbackError);
+            setErrorDetails(errorDetail + `\n原生播放器降级失败: ${String(fallbackError)}`);
+          }
         }
       }
     };
@@ -305,15 +356,45 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
   if (error) {
     return (
       <div className="relative w-full h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
-        <div className="text-center text-white p-8">
+        <div className="text-center text-white p-8 max-w-2xl">
           <div className="text-red-400 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold mb-2">播放器错误</h3>
-          <p className="text-sm text-gray-300 mb-4">{error}</p>
-          <p className="text-xs text-gray-400">视频源: {src}</p>
+          <h3 className="text-lg font-semibold mb-4">播放器组件错误</h3>
+          
+          {/* 错误信息展示 */}
+          <div className="mb-6 p-4 bg-red-900/30 rounded-lg border border-red-500/30 text-left">
+            <div className="mb-3">
+              <span className="text-sm font-semibold text-red-300">错误信息：</span>
+              <p className="text-sm text-red-100 mt-1 font-mono bg-red-900/50 p-2 rounded break-words">
+                {error}
+              </p>
+            </div>
+            
+            {errorDetails && (
+              <div className="mb-3">
+                <span className="text-sm font-semibold text-red-300">详细信息：</span>
+                <p className="text-sm text-red-100 mt-1 font-mono bg-red-900/50 p-2 rounded break-words whitespace-pre-wrap">
+                  {errorDetails}
+                </p>
+              </div>
+            )}
+            
+            <div>
+              <span className="text-sm font-semibold text-red-300">视频源：</span>
+              <p className="text-sm text-red-100 mt-1 font-mono bg-red-900/50 p-2 rounded break-all">
+                {src}
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-xs text-gray-400 space-y-1">
+            <p>• 请检查视频文件是否存在且格式正确</p>
+            <p>• 支持的格式：MP4, MKV, M3U8</p>
+            <p>• 如问题持续，请联系管理员</p>
+          </div>
         </div>
       </div>
     );
@@ -342,5 +423,14 @@ export function VideoPlayer({ src, poster, autoplay = false, episodeId }: VideoP
         您的浏览器不支持视频播放。请更新浏览器或使用其他浏览器。
       </video>
     </div>
+  );
+}
+
+// 用 ErrorBoundary 包装的 VideoPlayer 组件
+export function VideoPlayer(props: VideoPlayerProps) {
+  return (
+    <ErrorBoundary>
+      <VideoPlayerCore {...props} />
+    </ErrorBoundary>
   );
 }
