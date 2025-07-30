@@ -1,74 +1,430 @@
-# Self Cinema 启动指南
+# 🎬 Self Cinema - 私人影院系统
 
-## 系统概述
+![微信图片_20250730200910_886](https://img.onmicrosoft.cn/zkeq/20250730201012645.png)
 
-Self Cinema 现已完成开发，包含以下组件：
-- FastAPI 后端 (端口 8000)
-- Next.js 前端 (端口 3000) 
-- SQLite 数据库 (自动创建)
-- 管理后台界面
+<div align="center">
 
-## 启动步骤
+![Self Cinema Logo](https://img.shields.io/badge/Self%20Cinema-🎭-red?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
-### 1. 启动后端服务
+**🌟 一个现代化的私人影院管理系统，让你轻松管理和分享你的视频收藏！**
 
-```bash
-cd backend
-python main.py
+[🚀 快速开始](#-快速开始) •
+[✨ 功能特性](#-功能特性) •
+[🛠️ 技术栈](#️-技术栈) •
+[📱 演示截图](#-演示截图) •
+[🤝 贡献](#-贡献)
+
+</div>
+
+---
+
+## 📖 项目简介
+
+Self Cinema 是一个功能完善的私人影院系统，专为个人或小团体设计。它提供了优雅的管理界面和流畅的观看体验，支持多种视频格式，让你可以轻松管理自己的视频收藏并与朋友分享。
+
+### 🎯 核心亮点
+
+- 🎨 **现代化设计** - 基于 shadcn/ui 的精美界面
+- 📱 **响应式布局** - 完美适配桌面和移动设备
+- 🔐 **安全认证** - JWT 保护的管理后台
+- 🎥 **专业播放器** - 基于 Plyr.js 的高质量视频播放
+- 🔗 **便捷分享** - 一键生成分享链接
+- 🌓 **暗黑模式** - 支持明暗主题切换
+
+---
+
+## ✨ 功能特性
+
+### 🎭 管理后台功能
+- ✅ **电视剧管理** - 完整的 CRUD 操作
+  - 📝 添加剧集信息（标题、简介、封面等）
+  - 🏷️ 分类标签和评分系统
+  - 🎬 导演和演员信息管理
+  - 📊 播放量和状态跟踪
+- ✅ **剧集管理** - 逐集详细管理
+  - 🎞️ 视频文件上传和链接管理
+  - ⏱️ 时长和封面图设置
+  - 💎 VIP 专享内容标记
+- ✅ **分享系统** - 智能链接生成
+  - 🔗 安全的哈希链接生成
+  - ⏰ 可选的过期时间设置
+  - 📱 移动端友好的分享页面
+- ✅ **数据统计** - 直观的数据面板
+  - 📈 播放统计和趋势分析
+  - 👥 用户观看行为洞察
+
+### 🎬 观看体验
+- 🎥 **多格式支持** - MP4、MKV、M3U8 等主流格式
+- ⚡ **智能播放** - 自动记忆播放进度
+- 🎛️ **播放控制** - 倍速、全屏、画质选择
+- 📱 **触控优化** - 移动端手势控制
+- 🔄 **连续播放** - 自动切换下一集
+- 💾 **进度保存** - 跨设备同步观看进度
+
+### 🔐 安全特性
+- 🛡️ **JWT 认证** - 安全的用户身份验证
+- 🔒 **权限控制** - 细粒度的访问权限管理
+- 🚫 **防盗链** - 视频资源保护机制
+- 📝 **操作日志** - 完整的管理操作记录
+
+---
+
+## 🛠️ 技术栈
+
+### 🔧 后端技术
+- **🐍 FastAPI** - 现代化的 Python Web 框架
+- **🗄️ SQLAlchemy** - 强大的 ORM 工具
+- **💾 SQLite** - 轻量级数据库
+- **🔐 JWT** - JSON Web Token 认证
+- **📊 Uvicorn** - 高性能 ASGI 服务器
+
+### 🎨 前端技术
+- **⚛️ Next.js 14** - React 全栈框架
+- **📘 TypeScript** - 类型安全的 JavaScript
+- **🎨 Tailwind CSS** - 实用优先的 CSS 框架
+- **🧩 shadcn/ui** - 高质量的 React 组件库
+- **🎥 Plyr.js** - 现代化的 HTML5 播放器
+- **📡 Axios** - HTTP 客户端库
+
+---
+
+## 🚀 快速开始
+
+### 📋 环境要求
+
+- 🐍 **Python 3.8+**
+- 📦 **Node.js 18+**
+- 💿 **npm 或 yarn**
+
+### 📥 安装步骤
+
+1. **克隆项目**
+   ```bash
+   git clone https://github.com/your-username/self-cinema.git
+   cd self-cinema
+   ```
+
+2. **🔧 设置后端环境**
+   ```bash
+   cd backend
+   
+   # 安装 Python 依赖
+   pip install -r requirements.txt
+   
+   # 启动后端服务 🚀
+   python main.py
+   ```
+   
+   后端服务将在 `http://localhost:8000` 启动
+   - 📖 API 文档: `http://localhost:8000/docs`
+   - 👤 默认管理员: `admin` / `admin123`
+
+3. **🎨 设置前端环境**
+   ```bash
+   cd ../frontend
+   
+   # 安装依赖
+   npm install
+   
+   # 启动开发服务器 🚀
+   npm run dev
+   ```
+   
+   前端服务将在 `http://localhost:3000` 启动
+
+4. **🎉 开始使用**
+   - 🏠 **首页**: `http://localhost:3000`
+   - 🔐 **管理后台**: `http://localhost:3000/admin/login`
+   - 📝 **登录信息**: `admin` / `admin123`
+
+---
+
+## 📱 项目结构
+
+```
+self-cinema/
+├── 📂 backend/                 # 后端代码
+│   ├── 🐍 main.py             # 主应用文件
+│   ├── 🗄️ models.py          # 数据库模型
+│   ├── 🔐 auth.py             # 认证功能
+│   ├── 📝 requirements.txt    # Python 依赖
+│   └── 💾 database.db         # SQLite 数据库
+├── 📂 frontend/               # 前端代码
+│   ├── 📂 src/
+│   │   ├── 📂 app/           # Next.js 页面
+│   │   │   ├── 🏠 page.tsx           # 首页
+│   │   │   ├── 📂 admin/             # 管理后台
+│   │   │   │   ├── 🔐 login/         # 登录页面
+│   │   │   │   └── 📊 dashboard/     # 管理面板
+│   │   │   └── 📂 watch/             # 播放页面
+│   │   ├── 📂 components/     # React 组件
+│   │   │   ├── 🎥 video-player.tsx  # 视频播放器
+│   │   │   ├── 🎨 ui/               # UI 组件库
+│   │   │   └── 🛡️ error-boundary.tsx # 错误边界
+│   │   ├── 📂 lib/           # 工具函数
+│   │   │   ├── 🌐 api.ts            # API 客户端
+│   │   │   ├── 🔐 auth.ts           # 认证工具
+│   │   │   └── 💾 progress.ts       # 进度管理
+│   │   └── 📂 types/         # TypeScript 类型
+│   ├── 📦 package.json       # Node.js 依赖
+│   └── ⚙️ next.config.ts     # Next.js 配置
+└── 📖 README.md              # 项目文档
 ```
 
-后端服务将在 http://localhost:8000 启动
-- API 文档: http://localhost:8000/docs
-- 默认管理员账号: admin / admin123
+---
 
-### 2. 启动前端服务
+## 🎮 使用指南
+
+### 👨‍💼 管理员操作
+
+1. **📺 添加电视剧**
+   - 登录管理后台
+   - 点击"电视剧管理"标签
+   - 填写详细信息（标题、简介、封面等）
+   - 设置分类标签和评分
+
+2. **🎞️ 管理剧集**
+   - 选择对应的电视剧
+   - 添加视频文件链接
+   - 设置剧集封面和简介
+   - 配置 VIP 权限
+
+3. **🔗 生成分享链接**
+   - 在电视剧详情页点击"分享"
+   - 复制生成的安全链接
+   - 发送给朋友观看
+
+### 👥 观众体验
+
+1. **🎬 观看视频**
+   - 通过分享链接访问
+   - 选择想看的剧集
+   - 享受高质量的播放体验
+
+2. **📱 移动端使用**
+   - 响应式设计完美适配手机
+   - 支持手势控制
+   - 自动记忆播放进度
+
+---
+
+## 🔧 配置说明
+
+### 🌐 环境变量
+
+创建 `.env` 文件并配置以下变量：
 
 ```bash
-cd frontend
-npm run dev
+# 🔐 后端配置
+SECRET_KEY=your-super-secret-jwt-key
+DATABASE_URL=sqlite:///./database.db
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+
+# 🎨 前端配置
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_APP_NAME=Self Cinema
 ```
 
-前端服务将在 http://localhost:3000 启动
+### ⚙️ 自定义配置
 
-### 3. 访问管理后台
+- **🎥 视频格式**: 在 `main.py` 中配置支持的视频格式
+- **🎨 主题样式**: 在 `globals.css` 中自定义颜色主题
+- **📱 响应式断点**: 在 `tailwind.config.js` 中调整断点设置
 
-访问 http://localhost:3000/admin/login
-- 用户名: admin
-- 密码: admin123
+---
 
-## 功能说明
+## 📚 API 文档
 
-### 管理后台功能
-- ✅ 电视剧管理 (CRUD)
-- ✅ 剧集管理 (CRUD)  
-- ✅ 分享链接生成
-- ✅ 数据统计面板
-- ✅ JWT 认证保护
+### 🔐 认证接口
 
-### API 接口
-- ✅ 认证相关: `/auth/login`
-- ✅ 电视剧: `/series` (GET/POST/PUT/DELETE)
-- ✅ 剧集: `/episodes` (GET/POST/PUT/DELETE)
-- ✅ 分享: `/series/{id}/share`, `/watch/{hash}`
+| 方法 | 端点 | 描述 | 
+|------|------|------|
+| `POST` | `/auth/login` | 🔑 用户登录 |
 
-### 数据结构
-- ✅ 完整的电视剧信息字段
-- ✅ 剧集信息和视频链接
-- ✅ 分享链接管理
-- ✅ 用户认证系统
+### 📺 电视剧接口
 
-## 技术特点
+| 方法 | 端点 | 描述 | 认证 |
+|------|------|------|------|
+| `GET` | `/series` | 📋 获取所有电视剧 | ❌ |
+| `GET` | `/series/{id}` | 📖 获取电视剧详情 | ❌ |
+| `POST` | `/series` | ➕ 创建电视剧 | ✅ |
+| `PUT` | `/series/{id}` | ✏️ 更新电视剧 | ✅ |
+| `DELETE` | `/series/{id}` | 🗑️ 删除电视剧 | ✅ |
 
-- **扁平化架构**: 后端代码简洁，易于维护
-- **shadcn/ui 设计**: 现代化管理界面
-- **响应式设计**: 适配桌面和移动端
-- **类型安全**: 完整的 TypeScript 支持
+### 🎞️ 剧集接口
 
-## 使用建议
+| 方法 | 端点 | 描述 | 认证 |
+|------|------|------|------|
+| `GET` | `/series/{id}/episodes` | 📋 获取剧集列表 | ❌ |
+| `GET` | `/episodes/{id}` | 📖 获取剧集详情 | ❌ |
+| `POST` | `/episodes` | ➕ 创建剧集 | ✅ |
+| `PUT` | `/episodes/{id}` | ✏️ 更新剧集 | ✅ |
+| `DELETE` | `/episodes/{id}` | 🗑️ 删除剧集 | ✅ |
 
-1. 首次使用请先添加电视剧信息
-2. 为每个电视剧添加剧集和视频链接
-3. 使用分享功能生成观看链接
-4. 管理界面支持实时数据更新
+### 🔗 分享接口
 
-系统已完成开发并可以正常使用！
+| 方法 | 端点 | 描述 | 认证 |
+|------|------|------|------|
+| `POST` | `/series/{id}/share` | 🔗 生成分享链接 | ❌ |
+| `GET` | `/watch/{hash}` | 👀 通过分享链接观看 | ❌ |
+
+---
+
+## 🐛 故障排除
+
+### 常见问题
+
+**❓ 后端启动失败**
+- 检查 Python 版本是否 3.8+
+- 确认所有依赖已正确安装
+- 检查端口 8000 是否被占用
+
+**❓ 前端样式异常**
+- 清除 Node.js 缓存: `npm cache clean --force`
+- 重新安装依赖: `rm -rf node_modules && npm install`
+- 检查 Tailwind CSS 配置
+
+**❓ 视频播放失败**
+- 确认视频文件格式受支持
+- 检查视频文件链接是否可访问
+- 验证播放器组件是否正确加载
+
+**❓ 登录认证问题**
+- 检查 JWT 密钥配置
+- 确认默认管理员账号已创建
+- 查看浏览器控制台错误信息
+
+---
+
+## 🚀 部署指南
+
+### 🐳 Docker 部署
+
+```bash
+# 构建镜像
+docker build -t self-cinema .
+
+# 运行容器
+docker run -p 3000:3000 -p 8000:8000 self-cinema
+```
+
+### ☁️ 云服务器部署
+
+1. **准备服务器环境**
+   ```bash
+   # 更新系统
+   sudo apt update && sudo apt upgrade -y
+   
+   # 安装 Python 和 Node.js
+   sudo apt install python3 python3-pip nodejs npm -y
+   ```
+
+2. **配置反向代理**
+   ```nginx
+   server {
+       listen 80;
+       server_name your-domain.com;
+       
+       location / {
+           proxy_pass http://localhost:3000;
+       }
+       
+       location /api {
+           proxy_pass http://localhost:8000;
+       }
+   }
+   ```
+
+3. **设置系统服务**
+   ```bash
+   # 创建 systemd 服务文件
+   sudo systemctl enable self-cinema
+   sudo systemctl start self-cinema
+   ```
+
+---
+
+## 🤝 贡献
+
+我们欢迎所有形式的贡献！💪
+
+### 🎯 贡献方式
+
+- 🐛 **报告 Bug** - 提交详细的问题报告
+- 💡 **功能建议** - 分享你的创意想法
+- 🔧 **代码贡献** - 提交 Pull Request
+- 📖 **文档改进** - 完善项目文档
+- 🌍 **国际化** - 添加多语言支持
+
+### 📝 贡献步骤
+
+1. 🍴 Fork 本项目
+2. 🌿 创建功能分支: `git checkout -b feature/AmazingFeature`
+3. 💾 提交更改: `git commit -m 'Add some AmazingFeature'`
+4. 📤 推送分支: `git push origin feature/AmazingFeature`
+5. 🔄 创建 Pull Request
+
+### 💻 开发规范
+
+- 📏 遵循现有代码风格
+- ✅ 添加必要的测试用例
+- 📝 更新相关文档
+- 🎨 使用 shadcn/ui 组件规范
+- 🔍 通过 ESLint 和 TypeScript 检查
+
+---
+
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE) 许可证。
+
+```
+MIT License
+
+Copyright (c) 2024 Self Cinema
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+---
+
+## 🙏 致谢
+
+感谢以下开源项目的支持：
+
+- 🎨 **shadcn/ui** - 精美的 React 组件库
+- ⚛️ **Next.js** - 强大的 React 框架
+- 🐍 **FastAPI** - 现代化的 Python 框架
+- 🎥 **Plyr.js** - 优秀的视频播放器
+- 🎨 **Tailwind CSS** - 实用的 CSS 框架
+
+---
+
+## 📞 联系我们
+
+- 📧 **邮箱**: [your-email@example.com](mailto:your-email@example.com)
+- 🐛 **问题反馈**: [GitHub Issues](https://github.com/your-username/self-cinema/issues)
+- 💬 **讨论**: [GitHub Discussions](https://github.com/your-username/self-cinema/discussions)
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给我们一个星星！⭐**
+
+Made with ❤️ by [Your Name]
+
+[🔝 回到顶部](#-self-cinema---私人影院系统)
+
+</div>
