@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
             
             <div className="text-xs text-gray-400 space-y-1">
-              <p>• 组件渲染时发生了错误</p>
+              <p>• 组件渲染时发生了错误，已知safari播放器无法播放部分视频，请更换例如Edge或者Chrome来观看</p>
               <p className="hidden md:block">• 请刷新页面重试</p>
               <p className="hidden md:block">• 如问题持续，请联系管理员</p>
             </div>
