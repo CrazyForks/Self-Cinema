@@ -19,7 +19,6 @@ function VideoPlayerCore({ src, poster, autoplay = false, episodeId }: VideoPlay
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!videoRef.current || typeof window === 'undefined') return;
@@ -201,19 +200,26 @@ function VideoPlayerCore({ src, poster, autoplay = false, episodeId }: VideoPlay
 
         console.log('Plyr 实例创建完成');
 
+        // 进度恢复标志位，防止重复恢复
+        let progressRestored = false;
+        
+        // 进度恢复函数
+        const restoreProgress = () => {
+          if (episodeId && !progressRestored) {
+            const savedProgress = getProgress(episodeId);
+            if (savedProgress && savedProgress.currentTime > 10) {
+              const playerInstance = player as unknown as { currentTime: number; duration: number };
+              console.log(`恢复播放进度: ${savedProgress.currentTime}s`);
+              playerInstance.currentTime = savedProgress.currentTime;
+              progressRestored = true; // 标记已恢复，避免重复
+            }
+          }
+        };
+
         // 事件监听
         player.on('ready', () => {
           console.log('播放器已准备就绪');
           setIsLoading(false);
-          
-          // 恢复播放进度
-          if (episodeId) {
-            const savedProgress = getProgress(episodeId);
-            if (savedProgress && savedProgress.currentTime > 10) {
-              console.log(`恢复播放进度: ${savedProgress.currentTime}s`);
-              (player as unknown as { currentTime: number }).currentTime = savedProgress.currentTime;
-            }
-          }
         });
 
         player.on('canplay', () => {
@@ -221,21 +227,35 @@ function VideoPlayerCore({ src, poster, autoplay = false, episodeId }: VideoPlay
           setIsLoading(false);
         });
 
+        player.on('loadedmetadata', () => {
+          console.log('视频元数据已加载');
+          restoreProgress(); // 只在这里恢复进度，避免重复
+        });
+
         player.on('loadeddata', () => {
           console.log('视频数据已加载');
         });
 
-        // 播放进度监听
+        // 播放进度监听 - 每5秒保存一次进度
+        let lastProgressSave = 0;
         player.on('timeupdate', () => {
           if (episodeId && (player as unknown as { duration: number; currentTime: number }).duration > 0) {
-            // 每5秒保存一次进度
-            if (progressTimerRef.current) {
-              clearTimeout(progressTimerRef.current);
+            const playerInstance = player as unknown as { duration: number; currentTime: number };
+            const currentTime = playerInstance.currentTime;
+            
+            // 每5秒保存一次进度，避免频繁写入localStorage
+            if (currentTime - lastProgressSave >= 5) {
+              lastProgressSave = currentTime;
+              saveProgress(episodeId, currentTime, playerInstance.duration);
             }
-            progressTimerRef.current = setTimeout(() => {
-              const playerInstance = player as unknown as { duration: number; currentTime: number };
-              saveProgress(episodeId, playerInstance.currentTime, playerInstance.duration);
-            }, 1000);
+          }
+        });
+
+        // 暂停时也保存进度
+        player.on('pause', () => {
+          if (episodeId && (player as unknown as { duration: number; currentTime: number }).duration > 0) {
+            const playerInstance = player as unknown as { duration: number; currentTime: number };
+            saveProgress(episodeId, playerInstance.currentTime, playerInstance.duration);
           }
         });
 
@@ -327,12 +347,6 @@ function VideoPlayerCore({ src, poster, autoplay = false, episodeId }: VideoPlay
     // 清理函数
     return () => {
       console.log('VideoPlayer 组件清理');
-      
-      // 清理进度保存定时器
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
       
       if (playerRef.current) {
         try {
