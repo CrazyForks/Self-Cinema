@@ -2,6 +2,10 @@
 
 ![微信图片_20250730200910_886](https://img.onmicrosoft.cn/zkeq/20250730201012645.png)
 
+![image-20250730201238279](https://img.onmicrosoft.cn/zkeq/20250730201238399.png)
+
+![image-20250730201249281](https://img.onmicrosoft.cn/zkeq/20250730201249405.png)
+
 <div align="center">
 
 ![Self Cinema Logo](https://img.shields.io/badge/Self%20Cinema-🎭-red?style=for-the-badge)
