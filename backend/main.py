@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import List, Optional
 from pydantic import BaseModel
+from urllib.parse import urlparse
 import hashlib
 import uuid
 import json
@@ -355,28 +356,52 @@ async def delete_episode(episode_id: str, db: Session = Depends(get_db), admin: 
 
 # 分享功能API
 @app.post("/series/{series_id}/share", response_model=ShareResponse)
-async def create_share_link(series_id: str, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
+async def create_share_link(series_id: str, request: Request, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """生成分享链接"""
     series = db.query(Series).filter(Series.id == series_id).first()
     if not series:
         raise HTTPException(status_code=404, detail="Series not found")
-    
+
     # 生成唯一hash
     hash_source = f"{series_id}{datetime.utcnow().isoformat()}"
     share_hash = hashlib.md5(hash_source.encode()).hexdigest()[:16]
-    
+
     # 创建分享链接记录
     share_link = ShareLink(
         hash=share_hash,
         series_id=series_id,
         expires_at=None  # 永不过期
     )
-    
+
     db.add(share_link)
     db.commit()
-    
+
+    # 动态获取请求来源地址
+    # 优先使用 Referer，其次使用 Origin，最后使用 Host
+    base_url = None
+
+    # 尝试从 Referer 获取
+    referer = request.headers.get("referer")
+    if referer:
+        # 从 referer 中提取协议和域名
+        parsed = urlparse(referer)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+
+    # 如果没有 Referer，尝试从 Origin 获取
+    if not base_url:
+        origin = request.headers.get("origin")
+        if origin:
+            base_url = origin
+
+    # 如果都没有，使用 Host 构建 URL
+    if not base_url:
+        host = request.headers.get("host", "localhost:3000")
+        # 判断是否为 HTTPS（通过 X-Forwarded-Proto 或其他代理头）
+        scheme = "https" if request.headers.get("x-forwarded-proto") == "https" else "http"
+        base_url = f"{scheme}://{host}"
+
     return ShareResponse(
-        shareUrl=f"http://localhost:3000/watch/{share_hash}",
+        shareUrl=f"{base_url}/watch/{share_hash}",
         hash=share_hash,
         expiresAt=None
     )
@@ -411,4 +436,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
