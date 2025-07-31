@@ -195,13 +195,13 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
 # 电视剧相关API
 @app.get("/series", response_model=List[SeriesResponse])
-async def get_series(db: Session = Depends(get_db)):
+async def get_series(db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """获取所有电视剧"""
     series_list = db.query(Series).all()
     return [series_to_response(series) for series in series_list]
 
 @app.get("/series/{series_id}", response_model=SeriesResponse)
-async def get_series_by_id(series_id: str, db: Session = Depends(get_db)):
+async def get_series_by_id(series_id: str, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """获取单个电视剧详情"""
     series = db.query(Series).filter(Series.id == series_id).first()
     if not series:
@@ -284,13 +284,13 @@ async def delete_series(series_id: str, db: Session = Depends(get_db), admin: Ad
 
 # 剧集相关API
 @app.get("/series/{series_id}/episodes", response_model=List[EpisodeResponse])
-async def get_episodes(series_id: str, db: Session = Depends(get_db)):
+async def get_episodes(series_id: str, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """获取电视剧的所有剧集"""
     episodes = db.query(Episode).filter(Episode.series_id == series_id).order_by(Episode.episode).all()
     return [episode_to_response(episode) for episode in episodes]
 
 @app.get("/episodes/{episode_id}", response_model=EpisodeResponse)
-async def get_episode_by_id(episode_id: str, db: Session = Depends(get_db)):
+async def get_episode_by_id(episode_id: str, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """获取单个剧集详情"""
     episode = db.query(Episode).filter(Episode.id == episode_id).first()
     if not episode:
@@ -355,7 +355,7 @@ async def delete_episode(episode_id: str, db: Session = Depends(get_db), admin: 
 
 # 分享功能API
 @app.post("/series/{series_id}/share", response_model=ShareResponse)
-async def create_share_link(series_id: str, db: Session = Depends(get_db)):
+async def create_share_link(series_id: str, db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
     """生成分享链接"""
     series = db.query(Series).filter(Series.id == series_id).first()
     if not series:
