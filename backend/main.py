@@ -430,7 +430,7 @@ async def get_watch_data(hash: str, db: Session = Depends(get_db)):
     )
 
 # 健康检查
-@app.get("/health")
+@app.get("/")
 async def health_check():
     return {"status": "ok", "message": "Self Cinema API is running"}
 
