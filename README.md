@@ -18,7 +18,7 @@
 [✨ 功能特性](#-功能特性) •
 [🛠️ 技术栈](#️-技术栈) •
 [📱 演示截图](#-演示截图) •
-[🤝 贡献](#-贡献)
+[🤝 贡献](#-贡献) 
 
 </div>
 
@@ -78,35 +78,37 @@ Self Cinema 是一个功能完善的私人影院系统，专为个人或小团�
 ## 🛠️ 技术栈
 
 ### 🔧 后端技术
-- **🐍 FastAPI** - 现代化的 Python Web 框架
-- **🗄️ SQLAlchemy** - 强大的 ORM 工具
+- **🐍 FastAPI 0.104.1** - 现代化的 Python Web 框架
+- **🗄️ SQLAlchemy 2.0.23** - 强大的 ORM 工具
 - **💾 SQLite** - 轻量级数据库
-- **🔐 JWT** - JSON Web Token 认证
-- **📊 Uvicorn** - 高性能 ASGI 服务器
+- **🔐 python-jose** - JWT 认证支持
+- **📊 Uvicorn 0.24.0** - 高性能 ASGI 服务器
+- **🔒 bcrypt** - 密码加密
 
 ### 🎨 前端技术
-- **⚛️ Next.js 14** - React 全栈框架
-- **📘 TypeScript** - 类型安全的 JavaScript
-- **🎨 Tailwind CSS** - 实用优先的 CSS 框架
-- **🧩 shadcn/ui** - 高质量的 React 组件库
-- **🎥 Plyr.js** - 现代化的 HTML5 播放器
-- **📡 Axios** - HTTP 客户端库
+- **⚛️ Next.js 15.4.4** - React 全栈框架
+- **📘 TypeScript 5** - 类型安全的 JavaScript
+- **🎨 Tailwind CSS 4** - 实用优先的 CSS 框架
+- **🧩 shadcn/ui + Radix UI** - 高质量的 React 组件库
+- **🎥 Plyr.js 3.7.8** - 现代化的 HTML5 播放器
+- **📡 Axios 1.11.0** - HTTP 客户端库
+- **🎭 next-themes** - 主题切换支持
 
 ---
 
-## 🚀 快速开始
+## 🚀 开发指南
 
 ### 📋 环境要求
 
 - 🐍 **Python 3.8+**
 - 📦 **Node.js 18+**
-- 💿 **npm 或 yarn**
+- 💿 **npm**
 
 ### 📥 安装步骤
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/your-username/self-cinema.git
+   git clone https://github.com/zkeq/self-cinema.git
    cd self-cinema
    ```
 
@@ -216,27 +218,25 @@ self-cinema/
 
 ## 🔧 配置说明
 
-### 🌐 环境变量
+### 🌐 项目配置
 
-创建 `.env` 文件并配置以下变量：
+**后端配置** (在 `backend/main.py` 中)：
+- 默认管理员账号通过 `init_default_admin()` 创建
+- 数据库：SQLite (`database.db`)
+- JWT 认证：内置配置
+- CORS：允许所有来源 (生产环境建议限制)
 
-```bash
-# 🔐 后端配置
-SECRET_KEY=your-super-secret-jwt-key
-DATABASE_URL=sqlite:///./database.db
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-
-# 🎨 前端配置
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=Self Cinema
-```
+**前端配置** (在 `frontend/src/lib/api.ts` 中)：
+- API 基础地址：`http://localhost:8000`
+- 支持主题切换 (明暗模式)
+- 响应式设计适配移动端
 
 ### ⚙️ 自定义配置
 
-- **🎥 视频格式**: 在 `main.py` 中配置支持的视频格式
-- **🎨 主题样式**: 在 `globals.css` 中自定义颜色主题
-- **📱 响应式断点**: 在 `tailwind.config.js` 中调整断点设置
+- **🎥 视频格式**: 支持 MP4、MKV、M3U8 等格式
+- **🎨 主题样式**: 在 `frontend/src/app/globals.css` 中自定义颜色主题
+- **📱 响应式设计**: 基于 Tailwind CSS 4 的响应式断点
+- **🔧 管理员账号**: 可通过 `backend/update_admin.py` 更新管理员信息
 
 ---
 
@@ -292,6 +292,7 @@ NEXT_PUBLIC_APP_NAME=Self Cinema
 - 检查 Tailwind CSS 配置
 
 **❓ 视频播放失败**
+- Safari 浏览器已知不支持 mkv 格式的视频播放
 - 确认视频文件格式受支持
 - 检查视频文件链接是否可访问
 - 验证播放器组件是否正确加载
@@ -305,49 +306,71 @@ NEXT_PUBLIC_APP_NAME=Self Cinema
 
 ## 🚀 部署指南
 
-### 🐳 Docker 部署
+### 📦 生产部署
 
+**前端生产构建：**
 ```bash
-# 构建镜像
-docker build -t self-cinema .
-
-# 运行容器
-docker run -p 3000:3000 -p 8000:8000 self-cinema
+cd frontend
+npm run build
+npm start
 ```
 
-### ☁️ 云服务器部署
+**后端生产运行：**
+```bash
+cd backend
+python main.py
+```
 
-1. **准备服务器环境**
-   ```bash
-   # 更新系统
-   sudo apt update && sudo apt upgrade -y
-   
-   # 安装 Python 和 Node.js
-   sudo apt install python3 python3-pip nodejs npm -y
-   ```
+### 🚀 快速开始
 
-2. **配置反向代理**
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-       
-       location / {
-           proxy_pass http://localhost:3000;
-       }
-       
-       location /api {
-           proxy_pass http://localhost:8000;
-       }
-   }
-   ```
+### ☁️ 云服务器部署 （后端）[使用宝塔部署]
 
-3. **设置系统服务**
-   ```bash
-   # 创建 systemd 服务文件
-   sudo systemctl enable self-cinema
-   sudo systemctl start self-cinema
-   ```
+1. 将 `backend` 文件夹上传至服务器 `\root` 即可
+
+   ![image-20250731101134242](https://img.onmicrosoft.cn/zkeq/20250731101141473.png)
+
+2. 修改 `jwt secret` 为一串随机字符串 `auth.py`
+
+   ![image-20250731101241859](https://img.onmicrosoft.cn/zkeq/20250731101323797.webp)
+
+3. 修改默认管理员账号，默认管理员密码 `models.py`
+
+   ![image-20250731101413349](https://img.onmicrosoft.cn/zkeq/20250731101430055.webp)
+
+4. 打开宝塔 网站 -> `Ptython项目` -> `新建站点`
+
+   新建一个虚拟环境
+
+   ![image-20250731101721616](https://img.onmicrosoft.cn/zkeq/20250731101721697.png)
+
+5. 表单按如下填写
+
+   ![image-20250731101757603](https://img.onmicrosoft.cn/zkeq/20250731101757694.png)
+
+6. 点击确定后项目会进行创建虚拟环境和安装，等待安装完毕 即可
+
+7. 点击设置可查看项目日志
+
+   ![image-20250731101900749](https://img.onmicrosoft.cn/zkeq/20250731101900862.png)
+
+8. 在这一步如果提示找不到某个依赖，点击 `操作` 中的 `终端`，自行输入 `pip install xxx(包名)` 即可，若提示端口被占用 （更改一个没有被占用的端口即可 `main.py`）
+
+   ![image-20250731102037862](https://img.onmicrosoft.cn/zkeq/20250731102037989.png)
+
+9.  请求服务端口，查看运行情况 （看到这个字符串，说明服务正常运行）
+
+   ![image-20250731102123918](https://img.onmicrosoft.cn/zkeq/20250731102123995.png)
+
+10. 后端部署已完成，可在cdn测绑定反代域名即可上线
+
+### ☁️  Vercel 部署 （前端）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fzkeq%2FSelf-Cinema%2Ftree%2Fmain%2Ffrontend&env=NEXT_PUBLIC_API_URL&envDescription=%E5%90%8E%E7%AB%AF%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80%EF%BC%88%E7%A4%BA%E4%BE%8B%3A%20https%3A%2F%2Fmovie-api.onmicrosoft.cn%EF%BC%89%EF%BC%9A&project-name=self-ciname&repository-name=self-ciname)
+
+- 按步骤进行操作即可成功部署
+
+![image-20250731103123137](https://img.onmicrosoft.cn/zkeq/20250731103123356.png)
+
 
 ---
 
@@ -362,14 +385,6 @@ docker run -p 3000:3000 -p 8000:8000 self-cinema
 - 🔧 **代码贡献** - 提交 Pull Request
 - 📖 **文档改进** - 完善项目文档
 - 🌍 **国际化** - 添加多语言支持
-
-### 📝 贡献步骤
-
-1. 🍴 Fork 本项目
-2. 🌿 创建功能分支: `git checkout -b feature/AmazingFeature`
-3. 💾 提交更改: `git commit -m 'Add some AmazingFeature'`
-4. 📤 推送分支: `git push origin feature/AmazingFeature`
-5. 🔄 创建 Pull Request
 
 ### 💻 开发规范
 
@@ -417,9 +432,9 @@ copies or substantial portions of the Software.
 
 ## 📞 联系我们
 
-- 📧 **邮箱**: [your-email@example.com](mailto:your-email@example.com)
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/your-username/self-cinema/issues)
-- 💬 **讨论**: [GitHub Discussions](https://github.com/your-username/self-cinema/discussions)
+- 📧 **邮箱**: [admin@icodeq.com](mailto:admin@icodeq.com)
+- 🐛 **问题反馈**: [GitHub Issues](https://github.com/zkeq/self-cinema/issues)
+- 💬 **讨论**: [GitHub Discussions](https://github.com/zkeq/self-cinema/discussions)
 
 ---
 
@@ -427,7 +442,7 @@ copies or substantial portions of the Software.
 
 **⭐ 如果这个项目对你有帮助，请给我们一个星星！⭐**
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by Zkeq
 
 [🔝 回到顶部](#-self-cinema---私人影院系统)
 
