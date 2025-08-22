@@ -326,8 +326,6 @@ python main.py
 
    ![image-20250731101134242](https://img.onmicrosoft.cn/zkeq/20250731101141473.png)
 
-   删掉 backend/database.db 开发测试数据库
-
 3. 修改 `jwt secret` 为一串随机字符串 `auth.py`
 
    ![image-20250731101241859](https://img.onmicrosoft.cn/zkeq/20250731101323797.webp)
