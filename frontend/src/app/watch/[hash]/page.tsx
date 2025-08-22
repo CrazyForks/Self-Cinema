@@ -376,12 +376,12 @@ export default function WatchPage() {
                             </div>
                             
                             {/* 标题 */}
-                            <h4 className="text-xs font-medium text-left line-clamp-1 mb-1 max-w-[290px]">
+                            <h4 className="text-xs font-medium text-left line-clamp-1 mb-1 w-[290px]">
                               {episode.title.replace(`第${episode.episode}集：`, "")}
                             </h4>
-                            
+
                             {/* 描述 */}
-                            <p className="text-xs text-left text-muted-foreground truncate leading-relaxed max-w-[290px]">
+                            <p className="text-xs text-left text-muted-foreground truncate leading-relaxed w-[290px]">
                               {episode.description}
                             </p>
                             
