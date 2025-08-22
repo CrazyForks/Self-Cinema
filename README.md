@@ -326,35 +326,37 @@ python main.py
 
    ![image-20250731101134242](https://img.onmicrosoft.cn/zkeq/20250731101141473.png)
 
-2. 修改 `jwt secret` 为一串随机字符串 `auth.py`
+   删掉 backend/music.db 开发测试数据库
+
+3. 修改 `jwt secret` 为一串随机字符串 `auth.py`
 
    ![image-20250731101241859](https://img.onmicrosoft.cn/zkeq/20250731101323797.webp)
 
-3. 修改默认管理员账号，默认管理员密码 `models.py`
+4. 修改默认管理员账号，默认管理员密码 `models.py`
 
    ![image-20250731101413349](https://img.onmicrosoft.cn/zkeq/20250731101430055.webp)
 
-4. 打开宝塔 网站 -> `Ptython项目` -> `新建站点`
+5. 打开宝塔 网站 -> `Ptython项目` -> `新建站点`
 
    新建一个虚拟环境
 
    ![image-20250731101721616](https://img.onmicrosoft.cn/zkeq/20250731101721697.png)
 
-5. 表单按如下填写
+6. 表单按如下填写
 
    ![image-20250731101757603](https://img.onmicrosoft.cn/zkeq/20250731101757694.png)
 
-6. 点击确定后项目会进行创建虚拟环境和安装，等待安装完毕 即可
+7. 点击确定后项目会进行创建虚拟环境和安装，等待安装完毕 即可
 
-7. 点击设置可查看项目日志
+8. 点击设置可查看项目日志
 
    ![image-20250731101900749](https://img.onmicrosoft.cn/zkeq/20250731101900862.png)
 
-8. 在这一步如果提示找不到某个依赖，点击 `操作` 中的 `终端`，自行输入 `pip install xxx(包名)` 即可，若提示端口被占用 （更改一个没有被占用的端口即可 `main.py`）
+9. 在这一步如果提示找不到某个依赖，点击 `操作` 中的 `终端`，自行输入 `pip install xxx(包名)` 即可，若提示端口被占用 （更改一个没有被占用的端口即可 `main.py`）
 
    ![image-20250731102037862](https://img.onmicrosoft.cn/zkeq/20250731102037989.png)
 
-9.  请求服务端口，查看运行情况 （看到这个字符串，说明服务正常运行）
+10.  请求服务端口，查看运行情况 （看到这个字符串，说明服务正常运行）
 
    ![image-20250731102123918](https://img.onmicrosoft.cn/zkeq/20250731102123995.png)
 
