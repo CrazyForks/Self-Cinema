@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 export const metadata: Metadata = {
   title: "Self Cinema - 私人影院系统",
   description: "基于 Next.js + FastAPI 的私人影院系统",
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({
